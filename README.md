@@ -28,7 +28,7 @@
 - [시스템 구조 및 모듈](docs/architecture.md)
 - [기능 요구사항 및 진행 상태](docs/requirements.md)
 - [회의 및 의사결정 기록](docs/meetings/)
-- [개발 일지](docs/dev-log.md)
+- [개발 일지](docs/dev-logs/)
 
 ## 협업 규칙 (제안)
 
