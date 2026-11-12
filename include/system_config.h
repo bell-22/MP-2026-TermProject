@@ -66,3 +66,8 @@
 #define DISPLAY_MULTIPLE 4U
 
 #endif // SYSTEM_CONFIG_H
+
+// 센서 채널 배선 임시
+/* ADC channel assignment (temporary) */
+#define VIBRATION_ADC_CHANNEL 0U
+#define LIGHT_ADC_CHANNEL 1U
