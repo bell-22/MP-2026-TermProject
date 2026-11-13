@@ -57,6 +57,22 @@
 // 경고음 기본 지속시간
 #define ALARM_DURATION_MS 200U
 
+// 단일 이벤트 경고 주파수
+#define ALARM_NORMAL_FREQ_HZ 800U
+
+// 복합 이벤트 경고 주파수
+#define ALARM_MULTIPLE_LOW_HZ 600U
+#define ALARM_MULTIPLE_HIGH_HZ 1200U
+
+// 일반 경고음 사이 무음 시간
+#define ALARM_GAP_MS 100U
+
+// 복합 이벤트 경고음 1회 지속시간 
+#define ALARM_MULTIPLE_DURATION_MS 400U
+
+// 복합 이벤트 두 음 사이 무음 시간
+//#define ALARM_MULTIPLE_GAP_MS 200U
+
 /* 5. Display Codes */
 
 #define DISPLAY_NONE 0U
@@ -65,9 +81,9 @@
 #define DISPLAY_LIGHT 3U
 #define DISPLAY_MULTIPLE 4U
 
-#endif // SYSTEM_CONFIG_H
-
 // 센서 채널 배선 임시
 /* ADC channel assignment (temporary) */
 #define VIBRATION_ADC_CHANNEL 0U
 #define LIGHT_ADC_CHANNEL 1U
+
+#endif // SYSTEM_CONFIG_H
