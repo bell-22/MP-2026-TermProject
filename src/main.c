@@ -5,29 +5,26 @@
 #include <unistd.h>
 
 #include "adc.h"
+#include "system_config.h"
 
-/* ADC 채널 설정 */
-#define LIGHT_CH 0
-#define VIB1_CH 1
-#define VIB2_CH 2
-
-/* 출력 주기: 100ms */
-#define SAMPLE_INTERVAL_US 100000
+/* 콘솔 출력 간격: 100ms */
+#define SAMPLE_INTERVAL_US 100000U
 
 int main(void)
 {
+    uint16_t vibration = 0;
     uint16_t light = 0;
-    uint16_t vib1 = 0;
-    uint16_t vib2 = 0;
 
     printf("================================\n");
     printf(" DE1-SoC Sensor Monitoring Test\n");
     printf("================================\n");
 
-    /* ADC 초기화 */
     adc_init();
 
     printf("ADC initialized.\n");
+    printf("Vibration: CH%u | Light: CH%u\n",
+           (unsigned)VIBRATION_ADC_CHANNEL,
+           (unsigned)LIGHT_ADC_CHANNEL);
     printf("Start sensor monitoring...\n\n");
 
     while (1)
@@ -35,30 +32,27 @@ int main(void)
         /* ADC 변환 갱신 요청 */
         adc_update();
 
-        /*
-         * 하드웨어의 변환 완료 시점은
-         * ADC IP 사양에 맞게 검증해야 함.
-         */
+        /* 변환 완료 시점은 실제 보드에서 검증 필요 */
         usleep(1000);
 
-        /* 센서 데이터 읽기 */
-        bool light_ok = adc_read(LIGHT_CH, &light);
-        bool vib1_ok = adc_read(VIB1_CH, &vib1);
-        bool vib2_ok = adc_read(VIB2_CH, &vib2);
+        /* 공통 설정값에 따라 센서 데이터 읽기 */
+        bool vibration_ok =
+            adc_read(VIBRATION_ADC_CHANNEL, &vibration);
 
-        if (light_ok && vib1_ok && vib2_ok)
+        bool light_ok =
+            adc_read(LIGHT_ADC_CHANNEL, &light);
+
+        if (vibration_ok && light_ok)
         {
-            printf("LIGHT: %4u | VIB1: %4u | VIB2: %4u\n",
-                   (unsigned)light,
-                   (unsigned)vib1,
-                   (unsigned)vib2);
+            printf("VIBRATION: %4u | LIGHT: %4u\n",
+                   (unsigned)vibration,
+                   (unsigned)light);
         }
         else
         {
             printf("[ERROR] ADC read failed!\n");
         }
 
-        /* 100ms 간격으로 출력 */
         usleep(SAMPLE_INTERVAL_US);
     }
 
