@@ -46,6 +46,8 @@ bool event_record_trigger(const EventInfo *event)
     if (event->event_flags == EVENT_NONE ||
         (event->event_flags &
          (uint8_t)~(EVENT_SHOCK | EVENT_SOUND | EVENT_LIGHT)) != 0U)
+    //                   1               2            4
+    //  EVENT_SHOCK \| EVENT_SOUND: 3 (충격과 소리 동시 발생)
     {
         return false;
     }
@@ -77,7 +79,7 @@ bool event_record_trigger(const EventInfo *event)
         record[record_count++] = sample;
     }
 
-    record_status = RECORD_ACTIVE;
+    record_status = RECORD_ACTIVE; // 이후 데이터를 수집할 준비 완료
 
     return true;
 }

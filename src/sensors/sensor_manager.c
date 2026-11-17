@@ -55,6 +55,6 @@ bool sensor_manager_sample(uint32_t timestamp_ms,
         sample.sound_level = 0;
     }
 
-    *out = sample;
-    return true;
+    *out = sample; // out = 호출한 쪽에서 전달한 구조체 주소
+    return true;   // 데이터 수집 성공
 }

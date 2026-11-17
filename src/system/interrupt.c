@@ -47,8 +47,5 @@ void interrupt_handler(void)
 
     /*
      * IRQ1: KEY
-     *
-     * 연경의 KEY 모듈과 통합할 때 추가 예정.
-     * 현재 단계에서는 활성화하지 않음.
      */
 }
