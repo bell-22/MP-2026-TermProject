@@ -1,5 +1,5 @@
 
-#include "nios2_ctrl_reg_macros.h"
+#include "../../include/nios2_ctrl_reg_macros.h"
 
 /* function prototypes */
 int main(void);

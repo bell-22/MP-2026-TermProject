@@ -1,7 +1,7 @@
-#include "vibration.h"
+#include "../../include/vibration.h"
 
-#include "adc.h"
-#include "system_config.h"
+#include "../../include/adc.h"
+#include "../../include/system_config.h"
 
 void vibration_init(void)
 {

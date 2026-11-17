@@ -1,12 +1,12 @@
 
-#include "sensor_manager.h"
+#include "../../include/sensor_manager.h"
 
 #include <stddef.h>
 
-#include "adc.h"
-#include "vibration.h"
-#include "light.h"
-#include "sound.h"
+#include "../../include/adc.h"
+#include "../../include/vibration.h"
+#include "../../include/light.h"
+#include "../../include/sound.h"
 
 void sensor_manager_init(void)
 {

@@ -1,4 +1,4 @@
-#include "sound.h"
+#include "../../include/sound.h"
 
 #include <stdint.h>
 #include <stddef.h>
