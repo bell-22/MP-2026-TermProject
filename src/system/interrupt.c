@@ -2,9 +2,9 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-#include "interrupt.h"
-#include "timer_internal.h"
-#include "nios2_ctrl_reg_macros.h"
+#include "../../include/interrupt.h"
+#include "../../src/system/timer_internal.h"
+#include "../../include/nios2_ctrl_reg_macros.h"
 
 #define TIMER_IRQ_MASK 0x1u
 

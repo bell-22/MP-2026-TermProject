@@ -1,4 +1,4 @@
-#include "system_state.h"
+#include "../../include/system_state.h"
 
 /* 현재 시스템 상태를 저장하는 변수 */
 static SystemState s_state = STATE_MONITORING;

@@ -2,10 +2,10 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-#include "timer.h"
-#include "timer_internal.h"
-#include "system_config.h"
-#include "nios2_ctrl_reg_macros.h"
+#include "../../include/timer.h"
+#include "../../src/system/timer_internal.h"
+#include "../../include/system_config.h"
+#include "../../include/nios2_ctrl_reg_macros.h"
 
 #define TIMER_BASE 0xFF202000u
 

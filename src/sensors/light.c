@@ -1,7 +1,7 @@
-#include "light.h"
+#include "../../include/light.h"
 
-#include "adc.h"
-#include "system_config.h"
+#include "../../include/adc.h"
+#include "../../include/system_config.h"
 
 void light_init(void)
 {

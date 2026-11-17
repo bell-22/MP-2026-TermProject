@@ -1,7 +1,7 @@
 
-#include "event_record.h"
-#include "ring_buffer.h"
-#include "system_config.h"
+#include "../../include/event_record.h"
+#include "../../include/ring_buffer.h"
+#include "../../include/system_config.h"
 
 #include <stddef.h>
 

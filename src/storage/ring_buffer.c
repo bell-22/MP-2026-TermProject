@@ -1,6 +1,6 @@
 
-#include "ring_buffer.h"
-#include "system_config.h"
+#include "../../include/ring_buffer.h"
+#include "../../include/system_config.h"
 #include <stddef.h>
 
 /* 고정 크기의 센서 데이터 저장 공간 */
