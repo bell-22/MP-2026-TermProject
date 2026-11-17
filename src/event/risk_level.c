@@ -1,5 +1,5 @@
 
-#include "risk_level.h"
+#include "../../include/risk_level.h"
 
 #include <stdbool.h>
 #include <stddef.h>
@@ -197,18 +197,18 @@ RiskLevel risk_level_update(
         active_count >= 2U ||
 
         (shock &&
-         (uint32_t)sample->vibration >=
-             RISK_SEVERE_MULTIPLIER
-             * SHOCK_THRESHOLD) ||
+        (uint32_t)sample->vibration >=
+            RISK_SEVERE_MULTIPLIER
+            * SHOCK_THRESHOLD) ||
 
         (sound &&
-         (uint32_t)sample->sound_level >=
-             RISK_SEVERE_MULTIPLIER
+        (uint32_t)sample->sound_level >=
+            RISK_SEVERE_MULTIPLIER
              * SOUND_THRESHOLD) ||
 
         (light &&
-         light_diff >=
-             RISK_SEVERE_MULTIPLIER
+        light_diff >=
+            RISK_SEVERE_MULTIPLIER
              * LIGHT_CHANGE_THRESHOLD) ||
 
         (uint32_t)(

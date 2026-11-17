@@ -1,45 +1,26 @@
 
-#include "led_hex.h"          // 이 모듈의 공개 함수 선언
-#include "event_classifier.h" // event_classify(): 이벤트 플래그 -> HEX 코드
-#include "project_types.h"   // EVENT_SHOCK, EVENT_SOUND, EVENT_LIGHT
-#include "system_config.h"   // LED_BLINK_INTERVAL_MS, DISPLAY_* 설정값
+#include "../../include/led_hex.h"          // 이 모듈의 공개 함수 선언
+#include "../../include/event_classifier.h" // event_classify(): 이벤트 플래그 -> HEX 코드
+#include "../../include/project_types.h"   // EVENT_SHOCK, EVENT_SOUND, EVENT_LIGHT
+#include "../../include/system_config.h"   // LED_BLINK_INTERVAL_MS, DISPLAY_* 설정값
 #include <stdbool.h>          // bool, true, false
 #include <stdint.h>           // uint8_t, uint32_t, uintptr_t
 
-/*
- * 실행 환경 선택 (둘 중 하나를 컴파일할 때 지정한다.)
- *
- * -DLED_HEX_HOST_TEST        : Mac/PC에서 가상 레지스터를 사용한다.
- * -DLED_HEX_DE1_SOC_COMPUTER : 표준 DE1-SoC Computer(Nios II)의 레지스터 사용.
- *
- * 교수님이 제공한 Nios II 하드웨어 구성이 표준 DE1-SoC Computer와
- * 다르다면 실제 주소는 해당 BSP/Platform Designer 설정으로 확인해야 한다.
- * 단순히 Mac에서 -DLED_HEX_DE1_SOC_COMPUTER를 쓰면 안 된다.
- */
-#if defined(LED_HEX_HOST_TEST) && defined(LED_HEX_DE1_SOC_COMPUTER)
-#error "Select only one LED/HEX execution environment."
-#elif defined(LED_HEX_HOST_TEST)
-// Mac에서는 하드웨어 대신 아래 변수에 출력을 저장하여 테스트한다.
-static volatile uint32_t s_mock_ledr;
-static volatile uint32_t s_mock_hex30;
-static volatile uint32_t s_mock_hex54;
-#define LEDR_REG      (&s_mock_ledr)
-#define HEX30_REG     (&s_mock_hex30)
-#define HEX54_REG     (&s_mock_hex54)
 
-// 단위 테스트에서만 사용하는 레지스터 조회 함수 (공개 API 아님).
-uint32_t led_hex_test_read_ledr(void)  { return s_mock_ledr; }
-uint32_t led_hex_test_read_hex30(void) { return s_mock_hex30; }
-uint32_t led_hex_test_read_hex54(void) { return s_mock_hex54; }
+/* DE1-SoC Computer 실제 하드웨어 레지스터 */
 
-#elif defined(LED_HEX_DE1_SOC_COMPUTER)
-// Intel DE1-SoC Computer / Nios II 참조 하드웨어의 메모리 맵.
-#define LEDR_REG  ((volatile uint32_t *)(uintptr_t)0xFF200000U)
-#define HEX30_REG ((volatile uint32_t *)(uintptr_t)0xFF200020U)
-#define HEX54_REG ((volatile uint32_t *)(uintptr_t)0xFF200030U)
-#else
-#error "Use -DLED_HEX_HOST_TEST (Mac) or -DLED_HEX_DE1_SOC_COMPUTER (Nios II)."
-#endif
+/* LEDR0 ~ LEDR9 */
+#define LEDR_REG \
+    ((volatile uint32_t *)(uintptr_t)0xFF200000U)
+
+/* HEX0 ~ HEX3 */
+#define HEX30_REG \
+    ((volatile uint32_t *)(uintptr_t)0xFF200020U)
+
+/* HEX4 ~ HEX5 */
+#define HEX54_REG \
+    ((volatile uint32_t *)(uintptr_t)0xFF200030U)
+
 
 // 각 7-Segment 숫자(0~4)의 a~g 점등 비트: 1이면 해당 구간 ON.
 static const uint8_t s_seven_segment[5] = {

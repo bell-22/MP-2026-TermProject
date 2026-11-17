@@ -1,6 +1,6 @@
 
-#include "event_detector.h"    // 공통 센서 구조체 및 이벤트 종류
-#include "system_config.h"    // 센서 임계값 및 감지 설정
+#include "../../include/event_detector.h"    // 공통 센서 구조체 및 이벤트 종류
+#include "../../include/system_config.h"    // 센서 임계값 및 감지 설정
 #include <stddef.h>           // NULL 사용
 
 /* 센서별 이벤트 감지 상태 */
