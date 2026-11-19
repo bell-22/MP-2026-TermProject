@@ -19,226 +19,193 @@ JTAG UART link established using cable "DE-SoC [USB-1]", device 2, instance 0x00
 [INFO] KEY1: LED/HEX clear
 [CAL] Baseline calibration started
 [CAL] Keep sensors stable for 5 seconds
-[SENSOR] 1000 ms | V:1235 L:695 S:27
-[SENSOR] 2000 ms | V:1232 L:703 S:47
-[SENSOR] 3000 ms | V:1231 L:696 S:38
-[SENSOR] 4000 ms | V:1231 L:679 S:40
-[SENSOR] 5000 ms | V:1231 L:652 S:31
-[CAL] Samples:500 | V:1234 L:647 S:37
-[AUDIO TEST] Alarm started
+[SENSOR] 1000 ms | V:1232 L:627 S:34
+[SENSOR] 2000 ms | V:1232 L:620 S:91
+[SENSOR] 3000 ms | V:1232 L:608 S:27
+[SENSOR] 4000 ms | V:1232 L:596 S:51
+[SENSOR] 5000 ms | V:1232 L:588 S:55
+[CAL] Samples:500 | V:1235 L[AUDIO TEST] Alarm started
 [READY] LEDR0~9 blinking 3 times
-[SENSOR] 6000 ms | V:1231 L:615 S:31
+[SENSOR] 6000 ms | V:1231 L:584 S:40
 [READY] LED signal completed
 [INFO] Start monitoring
-[SENSOR] 7000 ms | V:1228 L:608 S:30
-[SENSOR] 8000 ms | V:1231 L:579 S:47
 
-[EVENT] 8720 ms | Flags:2 | SOUND
-[RECORD] SOUND | BEFORE (500 samples)
-   3720 ms | V:1231 L:595 S:39
-   4720 ms | V:1232 L:607 S:32
-   5720 ms | V:1232 L:632 S:45
-   6720 ms | V:1235 L:660 S:42
-   7720 ms | V:1235 L:684 S:37
-   8710 ms | V:1243 L:535 S:1345
-[RECORD] SOUND | AFTER
-   8720 ms | V:1239 L:572 S:1315
+[EVENT] 6910 ms | Flags:2 | SOUND
 [HISTORY] Saved (1/10)
-[SENSOR] 9000 ms | V:1231 L:499 S:289
-   9710 ms | V:1236 L:560 S:86
-[SENSOR] 10000 ms | V:1232 L:611 S:34
-   10710 ms | V:1232 L:695 S:41
-[SENSOR] 11000 ms | V:1235 L:640 S:52
-   11710 ms | V:1232 L:703 S:32
-[SENSOR] 12000 ms | V:1235 L:668 S:43
-   12710 ms | V:1231 L:696 S:35
-[SENSOR] 13000 ms | V:1236 L:691 S:27
-   13710 ms | V:1231 L:679 S:26
-
-===== RECORD SAVED =====
-[RECORD] 8720 ms | Flags:2 | SOUND
-[RECORD] Pre:500 | Post:500 | Total:1000
-[RECORD] SAVED
-========================
-[SENSOR] 14000 ms | V:1236 L:700 S:50
-[SENSOR] 15000 ms | V:1239 L:703 S:40
-[SENSOR] 16000 ms | V:1239 L:691 S:36
-
-========== EVENT HISTORY ==========
-Stored Events: 1 / 10
-[01] 8720 ms | Flags:2 | SOUND
-===================================
-
-[EVENT] 16570 ms | Flags:4 | LIGHT
-[RECORD] LIGHT | BEFORE (500 samples)
-   11570 ms | V:1240 L:671 S:32
-   12570 ms | V:1239 L:647 S:35
-   13570 ms | V:1239 L:611 S:34
-   14570 ms | V:1239 L:607 S:32
-   15570 ms | V:1239 L:600 S:34
-   16560 ms | V:1228 L:460 S:39
-[RECORD] LIGHT | AFTER
-   16570 ms | V:1236 L:440 S:59
-[HISTORY] Saved (2/10)
-[SENSOR] 17000 ms | V:1235 L:432 S:45
-   17560 ms | V:1227 L:304 S:34
-[SENSOR] 18000 ms | V:1236 L:288 S:52
-   18560 ms | V:1227 L:275 S:35
-[SENSOR] 19000 ms | V:1239 L:431 S:52
-   19560 ms | V:1232 L:575 S:34
-[SENSOR] 20000 ms | V:1239 L:588 S:28
-   20560 ms | V:1232 L:587 S:32
-[SENSOR] 21000 ms | V:1239 L:587 S:26
-   21560 ms | V:1232 L:600 S:28
-
-===== RECORD SAVED =====
-[RECORD[RECORD] Pre:500 | Post:500 | Total:1000
-[RECORD] SAVED
-========================
-[SENSOR] 22000 ms | V:1239 L:579 S:40
-[SENSOR] 23000 ms | V:1236 L:575 S:49
-[SENSOR] 24000 ms | V:1232 L:595 S:55
-
-[EVENT] 24350 ms | Flags:1 | SHOCK
-[RECORD] SHOCK | BEFORE (500 samples)
-   19350 ms | V:1240 L:595 S:45
-   20350 ms | V:1239 L:587 S:29
-   21350 ms | V:1239 L:583 S:33
-   22350 ms | V:1239 L:576 S:50
-   23350 ms | V:1239 L:583 S:38
-   24340 ms | V:304 L:576 S:229
-[RECORD] SHOCK | AFTER
-   24350 ms | V:295 L:592 S:146
-[HISTORY] Saved (3/10)
-[SENSOR] 25000 ms | V:228 L:608 S:39
-   25340 ms | V:219 L:567 S:44
-[SENSOR] 26000 ms | V:199 L:632 S:30
-
-========== EVENT HISTORY ==========
-Stored Events: 3 / 10
-[01] 24350 ms | Flags:1 | SHOCK
-[02] 16570 ms | Flags:4 | LIGHT
-[03] 8720 ms | Flags:2 | SOUND
-===================================
-   26340 ms | V:191 L:571 S:51
-[SENSOR] 27000 ms | V:171 L:647 S:48
-   27340 ms | V:180 L:587 S:36
-
-[EVENT] 27560 ms | Flags:1 | SHOCK
-[RECORD] SHOCK | BEFORE (500 samples)
-   22560 ms | V:1235 L:628 S:25
-   23560 ms | V:1232 L:651 S:34
-   24560 ms | V:299 L:664 S:47
-   25560 ms | V:219 L:675 S:43
-   26560 ms | V:199 L:679 S:36
-   27550 ms | V:260 L:659 S:46
-[RECORD] SHOCK | AFTER
-   27560 ms | V:479 L:672 S:62
-[HISTORY] Saved (4/10)
-[SENSOR] 28000 ms | V:1052 L:671 S:42
-   28550 ms | V:1111 L:679 S:32
-[SENSOR] 29000 ms | V:1136 L:680 S:30
-   29550 ms | V:1155 L:684 S:38
-[SENSOR] 30000 ms | V:1164 L:687 S:30
-   30550 ms | V:1175 L:680 S:51
-[SENSOR] 31000 ms | V:1183 L:675 S:53
-   31550 ms | V:1188 L:671 S:50
-[SENSOR] 32000 ms | V:1191 L:663 S:66
-
-[EVENT] 32430 ms | Flags:2 | SOUND
-[RECORD] SOUND | BEFORE (500    27430 ms | V:204 L:576 S:54
-   28430 ms | V:1104 L:576 S:27
-   29430 ms | V:1156 L:572 S:32
-   30430 ms | V:1176 L:592 S:21
-   31430 ms | V:1192 L:608 S:55
-   32420 ms | V:1196 L:571 S:1712
-[RECORD] SOUND | AFTER
-   32430 ms | V:1196 L:628 S:1579
-[HISTORY] Saved (5/10)
-[SENSOR] 33000 ms | V:1199 L:651 S:35
-   33420 ms | V:1204 L:584 S:36
-[SENSOR] 34000 ms | V:1204 L:635 S:35
-   34420 ms | V:1208 L:595 S:38
-[SENSOR] 35000 ms | V:1208 L:627 S:32
-   35420 ms | V:1212 L:608 S:34
-[SENSOR] 36000 ms | V:1212 L:600 S:36
-
-========== EVENT HISTORY =Stored Events: 5 / 10
-[01] 32430 ms | Flags:2 | SOUND
-[02] 27560 ms | Flags:1 | SHOCK
-[03] 24350 ms | Flags:1 | SHOCK
-[04] 16570 ms | Flags:4 | LIGHT
-[05] 8720 ms | Flags:2 | SOUND
-===================================
-   36420 ms | V:1216 L:619 S:42
-
-[EVENT] 36610 ms | Flags:4 | LIGHT
-[RECORD] LIGHT | BEFORE (500 samples)
-   31610 ms | V:1196 L:603 S:34
-   32654 ms | V:1203 L:632 S:15
-   33610 ms | V:1211 L:588 S:26
-   34610 ms | V:1215 L:584 S:86
-   35610 ms | V:1216 L:579 S:34
-   36600 ms | V:1215 L:456 S:55
-[RECORD] LIGHT | AFTER
-   36610 ms | V:1220 L:432 S:36
-[HISTORY] Saved (6/10)
-[SENSOR] 37000 ms | V:1212 L:323 S:37
-   37600 ms | V:1212 L:311 S:44
-[SENSOR] 38000 ms | V:1219 L:500 S:45
-   38600 ms | V:1220 L:531 S:39
-[SENSOR] 39000 ms | V:1220 L:492 S:27
-   39600 ms | V:1223 L:519 S:38
-[SENSOR] 40000 ms | V:1223 L:523 S:335
-   40600 ms | V:1223 L:524 S:147
-[SENSOR] 41000 ms | V:1224 L:515 S:57
-   41600 ms | V:1223 L:511 S:181
-
-===== RECORD SAVED =====
-[RECORD] 36610 ms | Flags:4 | LIGHT
-[RECORD] Pre:500 | Post:500 | Total:1000
-[RECORD] SAVED
-========================
-[SENSOR] 42000 ms | V:1223 L:504 S:36
-[SENSOR] 43000 ms | V:1224 L:495 S:46
-[SENSOR] 44000 ms | V:1224 L:508 S:39
-
-[EVENT] 44790 ms | Flags:2 | SOUND
 [RECORD] SOUND | BEFORE (500 samples)
-   39790 ms | V:1227 L:560 S:140
-   40790 ms | V:1228 L:551 S:33
-   41790 ms | V:1228 L:520 S:24
-   42790 ms | V:1231 L:507 S:32
-   43790 ms | V:1231 L:503 S:43
-   44780 ms | V:1216 L:540 S:1973
+   1910 ms | V:1239 L:580 S:77
+   2910 ms | V:1239 L:576 S:42
+   3910 ms | V:1239 L:575 S:47
+   4910 ms | V:1239 L:575 S:67
+   5910 ms | V:1239 L:575 S:89
 [RECORD] SOUND | AFTER
-   44790 ms | V:1228 L:500 S:2044
-[HISTORY] Saved (7/10)
-[SENSOR] 45000 ms | V:1227 L:519 S:740
-[KEY1] LED/HEX cleared
-   45780 ms | V:1224 L:603 S:42
-[SENSOR] 46000 ms | V:1227 L:615 S:27
+[SENSOR] 7058 ms | V:1240 L:580 S:7552
+   7900 ms | V:1231 L:583 S:36
+[SENSOR] 8060 ms | V:1239 L:572 S:57
+   8900 ms | V:1232 L:584 S:55
+[SENSOR] 9060 ms | V:1239 L:576 S:324
+   9900 ms | V:1232 L:584 S:51
+[SENSOR] 10060 ms | V:1239 L:584 S:44
+   10900 ms | V:1232 L:584 S:41
+[SENSOR] 11060 ms | V:1239 L:588 S:49
+   11900 ms | V:1232 L:583 S:61
 
-========== EVENT HISTORY =Stored Events: 7 / 10
-[01] 44790 ms | Flags:2 | SOUND
-[02] 36610 ms | Flags:4 | LIGHT
-[03] 32430 ms | Flags:2 | SOUND
-[04] 27560 ms | Flags:1 | SHOCK
-[05] 24350 ms | Flags:1 | SHOCK
-[06] 16570 ms | Flags:4 | LIGHT
-[07] 8720 ms | Flags:2 | SOUND
-===================================
-   46780 ms | V:1224 L:588 S:33
-[SENSOR] 47000 ms | V:1227 L:632 S:36
-   47780 ms | V:1224 L:587 S:29
-[SENSOR] 48000 ms | V:1227 L:648 S:36
-   48780 ms | V:1227 L:583 S:38
-[SENSOR] 49000 ms | V:1228 L:664 S:29
-   49780 ms | V:1227 L:576 S:32
-
-===== RECORD SAVED =====
-[RECORD] 44790 ms | Flags:2 | SOUND
 [RECORD] Pre:500 | Post:500 | Total:1000
 [RECORD] SAVED
-========================
-[SENSOR] 50000 ms | V:1232 L:676 S:36
+
+[SENSOR] 12060 ms | V:1239 L:591 S:98
+[SENSOR] 13060 ms | V:1239 L:591 S:36
+[SENSOR] 14060 ms | V:1239 L:588 S:80
+[SENSOR] 15060 ms | V:1239 L:588 S:52
+
+[EVENT] 15400 ms | Flags:4 | LIGHT
+[HISTORY] Saved (2/10)
+[RECORD] LIGHT | BEFORE (500 samples)
+   10400 ms | V:1232 L:584 S:62
+   11400 ms | V:1232 L:584 S:98
+   12400 ms | V:1232 L:583 S:46
+   13400 ms | V:1232 L:580 S:86
+   14400 ms | V:1232 L:579 S:77
+[RECORD] LIGHT | AFTER
+[SENSOR] 16060 ms | V:1232 L:292 S:57
+
+========== EVENT HISTORY ==========
+Stored Events: 2 / 10
+[01] 6910 ms | Flags:2 | SOUND
+[02] 15400 ms | Flags:4 | LIGHT
+===================================
+   16390 ms | V:1236 L:367 S:46
+[SENSOR] 17060 ms | V:1239 L:591 S:44
+   17390 ms | V:1240 L:631 S:54
+[SENSOR] 18060 ms | V:1239 L:587 S:53
+   18390 ms | V:1240 L:639 S:110
+[SENSOR] 19060 ms | V:1239 L:576 S:81
+   19390 ms | V:1240 L:644 S:45
+[SENSOR] 20060 ms | V:1239 L:576 S:49
+   20390 ms | V:1240 L:652 S:50
+
+[RECORD] Pre:500 | Post:500 | Total:1000
+[RECORD] SAVED
+
+[SENSOR] 21060 ms | V:1239 L:579 S:38
+[SENSOR] 22060 ms | V:1239 L:580 S:37
+[SENSOR] 23060 ms | V:1239 L:584 S:52
+[SENSOR] 24060 ms | V:1239 L:587 S:24
+
+[EVENT] 24700 ms | Flags:2 | SOUND
+[HISTORY] Saved (3/10)
+[RECORD] SOUND | BEFORE (500 samples)
+   19700 ms | V:1232 L:587 S:56
+   20700 ms | V:1231 L:591 S:40
+   21700 ms | V:1231 L:595 S:63
+   22700 ms | V:1231 L:608 S:30
+   23700 ms | V:1236 L:624 S:48
+[RECORD] SOUND | AFTER
+
+[EVENT] 24990 ms | Flags:1 | SHOCK
+[HISTORY] Saved (4/10)
+[RECOR   19990 ms | V:1240 L:651 S:51
+   20990 ms | V:1240 L:655 S:30
+   21990 ms | V:1240 L:663 S:52
+   22990 ms | V:1240 L:671 S:71
+   23990 ms | V:1240 L:672 S:38
+[RECORD] SHOCK | AFTER
+[SENSOR] 25190 ms | V:183 L:668 S:74
+   25980 ms | V:175 L:639 S:42
+
+========== EVENT HISTORY ==========
+Stored Events: 4 / 10
+[01] 6[02] 15400 ms | Flags:4 | LIGHT
+[03] 24700 ms | Flags:2 | SOUND
+[04] 24990 ms | Flags:1 | SHOCK
+===================================
+[SENSOR] 26270 ms | V:172 L:587 S:36
+
+[EVENT] 26580 ms | Flags:1 | SHOCK
+[HISTORY] Saved (5/10)
+[RECORD] SHOCK | BEFORE (500 samples)
+   21580 ms | V:1235 L:672 S:39
+   22580 ms | V:1235 L:668 S:39
+   23580 ms | V:1235 L:664 S:43
+   24580 ms | V:1236 L:659 S:50
+   25580 ms | V:180 L:644 S:43
+[RECORD] SHOCK | AFTER
+[SENSOR] 27270 ms | V:924 L:575 S:78
+   27570 ms | V:943 L:576 S:44
+[SENSOR] 28270 ms | V:972 L:579 S:60
+   28570 ms | V:968 L:579 S:41
+[SENSOR] 29270 ms | V:1003 L:579 S:37
+   29570 ms | V:1020 L:576 S:117
+
+[EVENT] 29700 ms | Flags:2 | SOUND
+[HISTORY] Saved (6/10)
+[RECORD] SOUND | BEFORE (500 samples)
+   24700 ms | V:1216 L:628 S:1597
+   25700 ms | V:180 L:624 S:47
+   26708 ms | V:872 L:643 S:2
+   27700 ms | V:948 L:651 S:53
+   28700 ms | V:972 L:659 S:41
+[RECORD] SOUND | AFTER
+[SENSOR] 30270 ms | V:1043 L:576 S:87
+   30690 ms | V:1063 L:632 S:50
+[SENSOR] 31270 ms | V:1071 L:575 S:45
+   31690 ms | V:1084 L:619 S:42
+
+[EVENT] 32030 ms | Flags:4 | LIGHT
+[HISTORY] Saved (7/10)
+[RECORD] LIGHT | BEFORE (500 samples)
+   27030 ms | V:915 L:639 S:54
+   28030 ms | V:967 L:627 S:91
+   29030 ms | V:991 L:616 S:59
+   30030 ms | V:1039 L:592 S:53
+   31030 ms | V:1071 L:575 S:48
+[RECORD] LIGHT | AFTER
+[SENSOR] 32270 ms | V:1095 L:536 S:95
+   33020 ms | V:1107 L:296 S:28
+[SENSOR] 33270 ms | V:1119 L:592 S:35
+   34020 ms | V:1135 L:616 S:38
+
+[EVENT] 34210 ms | Flags:2 | SOUND
+[HISTORY] Saved (8/10)
+[RECORD] SOUND | BEFORE (500 samples)
+   29210 ms | V:1004 L:603 S:42
+   30210 ms | V:1044 L:616 S:45
+   31210 ms | V:1079 L:612 S:58
+   32210 ms | V:1104 L:535 S:55
+   33210 ms | V:1120 L:476 S:33
+[RECORD] SOUND | AFTER
+[SENSOR] 34385 ms | V:300 L:663 S:1453
+
+[EVENT] 34386 ms | Flags:1 | SHOCK
+[HISTORY] Saved (9/10)
+[RECOR   29230 ms | V:1003 L:615 S:34
+   30230 ms | V:1043 L:591 S:61
+   31230 ms | V:1075 L:576 S:61
+   32230 ms | V:1096 L:507 S:113
+   33230 ms | V:1120 L:451 S:34
+[RECORD] SHOCK | AFTER
+   35220 ms | V:227 L:636 S:48
+[SENSOR] 35390 ms | V:216 L:607 S:40
+
+========== EVENT HISTORY ==========
+Stored Events: 9 / 10
+[01] 6[02] 15400 ms | Flags:4 | LIGHT
+[03] 24700 ms | Flags:2 | SOUND
+[04] 24990 ms | Flags:1 | SHOCK
+[05] 26580 ms | Flags:1 | SHOCK
+[06] 29700 ms | Flags:2 | SOUND
+[07] 32030 ms | Flags:4 | LIGHT
+[08] 34210 ms | Flags:2 | SOUND
+[09] 34386 ms | Flags:1 | SHOCK
+===================================
+   36257 ms | V:1079 L:647 S:0
+[SENSOR] 36390 ms | V:1088 L:604 S:56
+   37220 ms | V:1124 L:667 S:44
+[SENSOR] 37390 ms | V:1132 L:595 S:126
+   38220 ms | V:1152 L:675 S:46
+[SENSOR] 38390 ms | V:1152 L:596 S:186
+   39220 ms | V:1168 L:687 S:57
+
+[RECORD] Pre:500 | Post:500 | To[RECORD] SAVED
+
+[SENSOR] 39421 ms | V:1168 L:648 S:34
