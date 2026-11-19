@@ -1,8 +1,8 @@
 
-#include "led_hex.h"
-#include "event_classifier.h"
-#include "project_types.h"
-#include "system_config.h"
+#include "../../include/led_hex.h"
+#include "../../include/event_classifier.h"
+#include "../../include/project_types.h"
+#include "../../include/system_config.h"
 
 #include <stdbool.h>
 #include <stdint.h>
