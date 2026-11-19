@@ -2,9 +2,6 @@ JTAG UART link established using cable "DE-SoC [USB-1]", device 2, instance 0x00
 
 === Sensor Blackbox Stage 1 ===
 [BOOT] main entered
-[INIT] KEY O
-=== Sensor Blackbox Stage 1 ===
-[BOOT] main entered
 [INIT] KEY OK
 [INIT] Event detector OK
 [INIT] Risk level OK
@@ -21,279 +18,183 @@ JTAG UART link established using cable "DE-SoC [USB-1]", device 2, instance 0x00
 [INFO] KEY0: Alarm stop
 [INFO] KEY1: LED/HEX clear
 [CAL] Baseline calibration started
-[CAL] Keep sensors stable for 1 second
-Time:1000 ms | Vibration:1243 | Light:796 | Sound:90
-[CAL] Samples:100 | Vibration Base:1242 | Light Base:794 | Sound Base:93
+[CAL] Keep sensors stable for 5 seconds
+[SENSOR] 1000 ms | V:1227 L:467 S:63
+[SENSOR] 2000 ms | V:1227 L:379 S:85
+[SENSOR] 3000 ms | V:1228 L:431 S:593
+[SENSOR] 4000 ms | V:1227 L:451 S:255
+[SENSOR] 5000 ms | V:1227 L:452 S:175
+[CAL] Samples:500 | Vibration Base:1228 | Light Base:479 | Sound Base:1356
 [AUDIO TEST] Alarm started
 [READY] LEDR0~9 blinking 3 times
+[SENSOR] 6000 ms | V:1227 L:452 S:164
 [READY] LED signal completed
 [INFO] Start monitoring
-[INFO] Stora[HISTORY] Count:1 / 10
-[HISTORY] Latest:2156 ms | Flags:4 | LIGHT
-[RECORD] Recording started
-[EVENT] Time:2156 ms | Flags:4 | LIGHT
-[RECORD] Start:2156 ms | Flags:4 | Type:LIGHT | Samples:1
-Time:2156 ms | Vibration:1240 | Light:723 | Sound:101
-Time:3000 ms | Vibration:1244 | Light:736 | Sound:107
-[HISTORY] Count:2 / 10
-[HISTORY] Latest:3200 ms | Flags:4 | LIGHT[EVENT] Time:3200 ms | Flags:4 | LIGHT
-[RECORD] Start:2156 ms | Flags:4 | Type:LIGHT | Samples:121
-Time:4000 ms | Vibration:1244 | Light:724 | Sound:88
-[HISTORY] Count:3 / 10
-[HISTORY] Latest:4200 ms | Flags:4 | LIGHT
-[EVENT] Time:4200 ms | Flags:4 | LIGHT
-[RECORD] Start:2156 ms | Flags:4 | Type:LIGHT | Samples:221
-Time:5000 ms | Vibration:1244 | Light:703 | Sound:75
-[HISTORY] Count:4 / 10
-[HISTORY] Latest:5230 ms | Flags:4 | LIGHT
-[EVENT] Time:5230 ms | Flags:4 | LIGHT
-[RECORD] Start:2156 ms | Flags:4 | Type:LIGHT | Samples:324
-Time:6000 ms | Vibration:1244 | Light:712 | Sound:158
-[HISTORY] Count:5 / 10
-[HISTORY] Latest:6230 ms | Flags:4 | LIGHT[EVENT] Time:6230 ms | Flags:4 | LIGHT
-[RECORD] Start:2156 ms | Flags:4 | Type:LIGHT | Samples:424
+[INFO] Storage monitoring enabled
 
-========== RECORD SAVED ==========
-[RECORD] Start:2156 ms | Flag[RECORD] Post-event sampling completed
-==================================
-Time:7207 ms | Vibration:1240 | Light:739 | Sound:112
-[HISTORY] Count:6 / 10
-[HISTORY] Latest:7260 ms | Flags:4 | LIGHT
-[EVENT] Time:7260 ms | Flags:4 | LIGHT
-[RECORD] Start:2156 ms | Flags:4 | Type:LIGHT | Samples:501
-Time:8000 ms | Vibration:1247 | Light:719 | Sound:100
-[HISTORY] Count:7 / 10
-[HISTORY] Latest:8080 ms | Flags:2 | SOUND
-[EVENT] Time:8080 ms | Flags:2 | SOUND
-[RECORD] Start:2156 ms | Flags:4 | Type:LIGHT | Samples:501
-[HISTORY] Count:8 / 10
-[HISTORY] Latest:8260 ms | Flags:4 | LIGHT
-[EVENT] Time:8260 ms | Flags:4 | LIGHT
-[RECORD] Start:2156 ms | Flags:4 | Type:LIGHT | Samples:501
-Time:9000 ms | Vibration:1247 | Light:747 | Sound:182
-[HISTORY] Count:9 / 10
-[HISTORY] Latest:9220 ms | Flags:2 | SOUND[EVENT] Time:9220 ms | Flags:2 | SOUND
-[RECORD] Start:2156 ms | Flags:4 | Type:LIGHT | Samples:501
-[HISTORY] Count:10 / 10
-[HISTORY] Latest:9440 ms | Flags:4 | LIGH[EVENT] Time:9440 ms | Flags:4 | LIGHT
-[RECORD] Start:2156 ms | Flags:4 | Type:LIGHT | Samples:501
-Time:10000 ms | Vibration:1247 | Light:788 | Sound:1494
-[HISTORY] Count:10 / 10
-[HISTORY] Latest:10230 ms | Flags:2 | SOUND
-[EVENT] Time:10230 ms | Flags:2 | SOUND
-[RECORD] Start:2156 ms | Flags:4 | Type:LIGHT | Samples:501
-[HISTORY] Count:10 / 10
-[HISTORY] Latest:10470 ms | Flags:4 | LIGHT
-[EVENT] Time:10470 ms | Flags:4 | LIGHT
-[RECORD] Start:2156 ms | Flags:4 | Type:LIGHT | Samples:501
-Time:11000 ms | Vibration:1268 | Light:811 | Sound:843
-[HISTORY] Count:10 / 10
-[HISTORY] Latest:11470 ms | Flags:4 | LIGHT
-[EVENT] Time:11470 ms | Flags:4 | LIGHT
-[RECORD] Start:2156 ms | Flags:4 | Type:LIGHT | Samples:501
+[HISTORY] Saved (1/10)
+[EVENT] 6115 ms | Flags:2 | SOUND
+[RECORD] Sensor | V:1227 L:460 S:176
+[RECORD] Pre:500 | Post:1 | Total:501
+
+[HISTORY] Saved (2/10)
+[EVENT] 6120 ms | Flags:4 | LIGHT
+[RECORD] Sensor | V:1231 L:532 S:30
+[RECORD] Pre:500 | Post:1 | T[SENSOR] 7000 ms | V:1227 L:459 S:139
+[SENSOR] 8000 ms | V:1224 L:460 S:781
+[SENSOR] 9000 ms | V:1227 L:460 S:341
+
+[HISTORY] Saved (3/10)
+[EVENT] 9410 ms | Flags:4 | LIGHT
+[RECORD[RECORD] Pre:500 | Post:1 | Total:501
+[SENSOR] 10000 ms | V:1223 L:432 S:595
+
+[HISTORY] Saved (4/10)
+[EVENT] 10450 ms | Flags:4 | LIGHT
+[RECORD] Sensor | V:1224 L:387 S:422
+[RECORD] Pre:500 | Post:1 | Total:501
+[SENSOR] 11000 ms | V:1228 L:448 S:1056
+
+[HISTORY] Saved (5/10)
+[EVENT] 11990 ms | Flags:4 | LIGHT
+[RECORD] Sensor | V:1232 L:532 S:483
+[RECORD] Pre:500 | Post:1 | Total:501
+[SENSOR] 12103 ms | V:1228 L:528 S:127
+[SENSOR] 13110 ms | V:1231 L:424 S:85
+
+[HISTORY] Saved (6/10)
+[EVENT] 13160 ms | Flags:4 | LIGHT
+[RECORD] Sensor | V:1231 L:396 S:96
+[RECORD] Pre:500 | Post:1 | Total:501
+[SENSOR] 14110 ms | V:1231 L:427 S:52
+
+[HISTORY] Saved (7/10)
+[EVENT] 14190 ms | Flags:4 | LIGHT
+[RECORD] Sensor | V:1232 L:539 S:61
+[RECORD] Pre:500 | Post:1 | Total:501
+[SENSOR] 15110 ms | V:1232 L:459 S:52
+
+[HISTORY] Saved (8/10)
+[EVENT] 15190 ms | Flags:4 | LIGHT
+[RECORD] Sensor | V:1235 L:584 S:66
+[RECORD] Pre:500 | Post:1 | Total:501
+
+[HISTORY] Saved (9/10)
+[EVENT] 15400 ms | Flags:1 | SHOCK
+[RECORD] Sensor | V:596 L:531 S:132
+[RECORD] Pre:500 | Post:1 | Total:501
+
+========== EVENT HISTORY ==========
+Stored Events: 9 / 10
+[01] 1[02] 15190 ms | Flags:4 | LIGHT
+[03] 14190 ms | Flags:4 | LIGHT
+[04] 13160 ms | Flags:4 | LIGHT
+[05] 11990 ms | Flags:4 | LIGHT
+[06] 10450 ms | Flags:4 | LIGHT
+[07] 9410 ms | Flags:4 | LIGHT
+[08] 6120 ms | Flags:4 | LIGHT
+[09] 6115 ms | Flags:2 | SOUND
+===================================
+[SENSOR] 16228 ms | V:220 L:520 S:61
+
+[HISTORY] Saved (10/10)
+[EVENT] 16229 ms | Flags:4 | LIGHT
+[RECORD] Sensor | V:223 L:551 [RECORD] Pre:500 | Post:1 | Total:501
+[SENSOR] 17230 ms | V:204 L:552 S:59
+
+[HISTORY] Saved (10/10)
+[EVENT] 17240 ms | Flags:4 | LIGHT
+[RECORD] Sensor | V:216 L:588 S:62
+[RECORD] Pre:500 | Post:1 | Total:501
+
+[HISTORY] Saved (10/10)
+[EVENT] 17790 ms | Flags:1 | SHOCK
+[RECORD] Sensor | V:264 L:587 S:68
+[RECORD] Pre:500 | Post:1 | Total:501
+[SENSOR] 18230 ms | V:179 L:543 S:60
+
+[HISTORY] Saved (10/10)
+[EVENT] 18240 ms | Flags:4 | LIGHT
+[RECORD] Sensor | V:184 L:587 S:63
+[RECORD] Pre:500 | Post:1 | Total:501
+
+[HISTORY] Saved (10/10)
+[EVENT] 18880 ms | Flags:1 | SHOCK
+[RECORD] Sensor | V:819 L:536 S:54
+[RECORD] Pre:500 | Post:1 | Total:501
+[SENSOR] 19230 ms | V:944 L:536 S:44
+
+[HISTORY] Saved (10/10)
+[EVENT] 19240 ms | Flags:4 | LIGHT
+[RECORD] Sensor | V:980 L:588 S:34
+[RECORD] Pre:500 | Post:1 | Total:501
+
+[HISTORY] Saved (10/10)
+[EVENT] 20140 ms | Flags:1 | SHOCK
+[RECORD] Sensor | V:215 L:583 S:64
+[RECORD] Pre:500 | Post:1 | Total:501
+
+[HISTORY] Saved (10/10)
+[EVENT] 20251 ms | Flags:4 | LIGHT
+[RECORD] Sensor | V:259 L:532 S:64
+[RECORD] Pre:500 | Post:1 | Total:501
+[SENSOR] 20251 ms | V:259 L:532 S:64
+[SENSOR] 21260 ms | V:1036 L:516 S:44
+
+[HISTORY] Saved (10/10)
+[EVENT] 21300 ms | Flags:4 | LIGHT
+[RECORD] Sensor | V:236 L:575 S:43
+[RECORD] Pre:500 | Post:1 | Total:501
+
+[HISTORY] Saved (10/10)
+[EVENT] 21442 ms | Flags:1 | SHOCK
+[RECORD] Sensor | V:220 L:536 [RECORD] Pre:500 | Post:1 | Total:501
+[SENSOR] 22260 ms | V:1131 L:487 S:75
+
+[HISTORY] Saved (10/10)
+[EVENT] 22300 ms | Flags:4 | LIGHT
+[RECORD] Sensor | V:1124 L:535 S:57
+[RECORD] Pre:500 | Post:1 | Total:501
+[SENSOR] 23260 ms | V:1180 L:487 S:527
+
+[HISTORY] Saved (10/10)
+[EVENT] 23650 ms | Flags:4 | LIGHT
+[RECORD] Sensor | V:1184 L:551 S:152
+[RECORD] Pre:500 | Post:1 | Total:501
+[SENSOR] 24260 ms | V:1208 L:528 S:59
+
+[HISTORY] Saved (10/10)
+[EVENT] 24650 ms | Flags:4 | LIGHT
+[RECORD] Sensor | V:1200 L:583 S:87
+[RECORD] Pre:500 | Post:1 | Total:501
+[SENSOR] 25260 ms | V:1216 L:475 S:424
+
+[HISTORY] Saved (10/10)
+[EVENT] 25650 ms | Flags:4 | LIGHT
+[RECORD] Sensor | V:1211 L:580 S:87
+[RECORD] Pre:500 | Post:1 | Total:501
 
 ========== EVENT HISTORY ==========
 Stored Events: 10 / 10
-[01] Time:11470 ms | Flags:4 | LIGHT
-[02] Time:10470 ms | Flags:4 | LIGHT
-[03] Time:10230 ms | Flags:2 | SOUND
-[04] Time:9440 ms | Flags:4 | LIGHT
-[05] Time:9220 ms | Flags:2 | SOUND
-[06] Time:8260 ms | Flags:4 | LIGHT
-[07] Time:8080 ms | Flags:2 | SOUND
-[08] Time:7260 ms | Flags:4 | LIGHT
-[09] Time:6230 ms | Flags:4 | LIGHT
-[10] Time:5230 ms | Flags:4 | LIGHT
+[01] 25650 ms | Flags:4 | LIGHT
+[02] 24650 ms | Flags:4 | LIGHT
+[03] 23650 ms | Flags:4 | LIGHT
+[04] 22300 ms | Flags:4 | LIGHT
+[05] 21442 ms | Flags:1 | SHOCK
+[06] 21300 ms | Flags:4 | LIGHT
+[07] 20251 ms | Flags:4 | LIGHT
+[08] 20140 ms | Flags:1 | SHOCK
+[09] 19240 ms | Flags:4 | LIGHT
+[10] 18880 ms | Flags:1 | SHOCK
 ===================================
-Time:12133 ms | Vibration:1231 | Light:359 | Sound:29
-Time:13000 ms | Vibration:1236 | Light:195 | Sound:61
-[HISTORY] Count:10 / 10
-[HISTORY] Latest:13370 ms | Flags:4 | LIG[EVENT] Time:13370 ms | Flags:4 | LIGHT
-[RECORD] Start:2156 ms | Flags:4 | Type:LIGHT | Samples:501
-[HISTORY] Count:10 / 10
-[HISTORY] Latest:13770 ms | Flags:1 | SHOCK
-[EVENT] Time:13770 ms | Flags:1 | SHOCK
-[RECORD] Start:2156 ms | Flags:4 | Type:LIGHT | Samples:501
-Time:14000 ms | Vibration:432 | Light:824 | Sound:218
-[HISTORY] Count:10 / 10
-[HISTORY] Latest:14380 ms | Flags:4 | LIGHT
-[EVENT] Time:14380 ms | Flags:4 | LIGHT
-[RECORD] Start:2156 ms | Flags:4 | Type:LIGHT | Samples:501
-Time:15000 ms | Vibration:215 | Light:816 | Sound:92
-[HISTORY] Count:10 / 10
-[HISTORY] Latest:15380 ms | Flags:4 | LIGHT
-[EVENT] Time:15380 ms | Flags:4 | LIGHT
-[RECORD] Start:2156 ms | Flags:4 | Type:LIGHT | Samples:501
-Time:16000 ms | Vibration:223 | Light:804 | Sound:72
-[HISTORY] Count:10 / 10
-[HISTORY] Latest:16380 ms | Flags:4 | LIGHT
-[EVENT] Time:16380 ms | Flags:4 | LIGHT
-[RECORD] Start:2156 ms | Flags:4 | Type:LIGHT | Samples:501
-[HISTORY] Count:10 / 10
-[HISTORY] Latest:16690 ms | Flags:1 | SHOCK
-[EVENT] Time:16690 ms | Flags:1 | SHOCK
-[RECORD] Start:2156 ms | Flags:4 | Type:LIGHT | Samples:501
-Time:17000 ms | Vibration:1176 | Light:799 | Sound:114
-[HISTORY] Count:10 / 10
-[HISTORY] Latest:17390 ms | Flags:4 | LIG[EVENT] Time:17390 ms | Flags:4 | LIGHT
-[RECORD] Start:2156 ms | Flags:4 | Type:LIGHT | Samples:501
-Time:18000 ms | Vibration:1204 | Light:779 | Sound:64
-[HISTORY] Count:10 / 10
-[HISTORY] Latest:18390 ms | Flags:4 | LIG[EVENT] Time:18390 ms | Flags:4 | LIGHT
-[RECORD] Start:2156 ms | Flags:4 | Type:LIGHT | Samples:501
-Time:19000 ms | Vibration:1216 | Light:755 | Sound:83
-[HISTORY] Count:10 / 10
-[HISTORY] Latest:19390 ms | Flags:4 | LIGHT
-[EVENT] Time:19390 ms | Flags:4 | LIGHT
-[RECORD] Start:2156 ms | Flags:4 | Type:LIGHT | Samples:501
-Time:20000 ms | Vibration:1224 | Light:731 | Sound:71
-[HISTORY] Count:10 / 10
-[HISTORY] Latest:20390 ms | Flags:4 | LIGHT
-[EVENT] Time:20390 ms | Flags:4 | LIGHT
-[RECORD] Start:2156 ms | Flags:4 | Type:LIGHT | Samples:501
-Time:21000 ms | Vibration:1228 | Light:711 | Sound:93
-[HISTORY] Count:10 / 10
-[HISTORY] Latest:21390 ms | Flags:4 | LIGHT
-[EVENT] Time:21390 ms | Flags:4 | LIGHT
-[RECORD] Start:2156 ms | Flags:4 | Type:LIGHT | Samples:501
+[SENSOR] 26260 ms | V:1223 L:531 S:56
 
-========== EVENT HISTORY ==========
-Stored Events: 10 / 10
-[01] [02] Time:20390 ms | Flags:4 | LIGHT
-[03] Time:19390 ms | Flags:4 | LIGHT
-[04] Time:18390 ms | Flags:4 | LIGHT
-[05] Time:17390 ms | Flags:4 | LIGHT
-[06] Time:16690 ms | Flags:1 | SHOCK
-[07] Time:16380 ms | Flags:4 | LIGHT
-[08] Time:15380 ms | Flags:4 | LIGHT
-[09] Time:14380 ms | Flags:4 | LIGHT
-[10] Time:13770 ms | Flags:1 | SHOCK
-===================================
-Time:22160 ms | Vibration:1231 | Light:820 | Sound:40
-[HISTORY] Count:10 / 10
-[HISTORY] Latest:22400 ms | Flags:4 | LIG[EVENT] Time:22400 ms | Flags:4 | LIGHT
-[RECORD] Start:2156 ms | Flags:4 | Type:LIGHT | Samples:501
-Time:23000 ms | Vibration:1228 | Light:644 | Sound:104
-[HISTORY] Count:10 / 10
-[HISTORY] Latest:23440 ms | Flags:4 | LIGHT
-[EVENT] Time:23440 ms | Flags:4 | LIGHT
-[RECORD] Start:2156 ms | Flags:4 | Type:LIGHT | Samples:501
-[HISTORY] Count:10 / 10
-[HISTORY] Latest:23820 ms | Flags:2 | SOU[EVENT] Time:23820 ms | Flags:2 | SOUND
-[RECORD] Start:2156 ms | Flags:4 | Type:LIGHT | Samples:501
-Time:24006 ms | Vibration:1239 | Light:668 | Sound:10
-[HISTORY] Count:10 / 10
-[HISTORY] Latest:24450 ms | Flags:4 | LIG[EVENT] Time:24450 ms | Flags:4 | LIGHT
-[RECORD] Start:2156 ms | Flags:4 | Type:LIGHT | Samples:501
-Time:25000 ms | Vibration:1232 | Light:647 | Sound:236
-[HISTORY] Count:10 / 10
-[HISTORY] Latest:25450 ms | Flags:4 | LIG[EVENT] Time:25450 ms | Flags:4 | LIGHT
-[RECORD] Start:2156 ms | Flags:4 | Type:LIGHT | Samples:501
-[HISTORY] Count:10 / 10
-[HISTORY] Latest:25680 ms | Flags:2 | SOU[EVENT] Time:25680 ms | Flags:2 | SOUND
-[RECORD] Start:2156 ms | Flags:4 | Type:LIGHT | Samples:501
-Time:26000 ms | Vibration:1232 | Light:659 | Sound:2917
-[HISTORY] Count:10 / 10
-[HISTORY] Latest:26450 ms | Flags:4 | LIG[EVENT] Time:26450 ms | Flags:4 | LIGHT
-[RECORD] Start:2156 ms | Flags:4 | Type:LIGHT | Samples:501
-Time:27000 ms | Vibration:1235 | Light:667 | Sound:9158
-[HISTORY] Count:10 / 10
-[HISTORY] Latest:27450 ms | Flags:4 | LIGHT
-[EVENT] Time:27450 ms | Flags:4 | LIGHT
-[RECORD] Start:2156 ms | Flags:4 | Type:LIGHT | Samples:501
-Time:28000 ms | Vibration:1232 | Light:676 | Sound:277
-[HISTORY] Count:10 / 10
-[HISTORY] Latest:28450 ms | Flags:4 | LIGHT
-[EVENT] Time:28450 ms | Flags:4 | LIGHT
-[RECORD] Start:2156 ms | Flags:4 | Type:LIGHT | Samples:501
-Time:29000 ms | Vibration:1248 | Light:303 | Sound:162
-Time:30000 ms | Vibration:1228 | Light:260 | Sound:66
-Time:31000 ms | Vibration:1231 | Light:463 | Sound:61
-[HISTORY] Count:10 / 10
-[HISTORY] Latest:31410 ms | Flags:2 | SOUND
-[EVENT] Time:31410 ms | Flags:2 | SOUND
-[RECORD] Start:2156 ms | Flags:4 | Type:LIGHT | Samples:501
-[KEY1] LED/HEX cleared
+[HISTORY] Saved (10/10)
+[EVENT] 26650 ms | Flags:4 | LIGHT
+[RECO[RECORD] Pre:500 | Post:1 | Total:501
+[SENSOR] 27260 ms | V:1224 L:528 S:44
 
-========== EVENT HISTORY ==========
-Stored Events: 10 / 10
-[01] [02] Time:28450 ms | Flags:4 | LIGHT
-[03] Time:27450 ms | Flags:4 | LIGHT
-[04] Time:26450 ms | Flags:4 | LIGHT
-[05] Time:25680 ms | Flags:2 | SOUND
-[06] Time:25450 ms | Flags:4 | LIGHT
-[07] Time:24450 ms | Flags:4 | LIGHT
-[08] Time:23820 ms | Flags:2 | SOUND
-[09] Time:23440 ms | Flags:4 | LIGHT
-[10] Time:22400 ms | Flags:4 | LIGHT
-===================================
-Time:32178 ms | Vibration:1239 | Light:627 | Sound:7
-[HISTORY] Count:10 / 10
-[HISTORY] Latest:32260 ms | Flags:4 | LIGHT
-[EVENT] Time:32260 ms | Flags:4 | LIGHT
-[RECORD] Start:2156 ms | Flags:4 | Type:LIGHT | Samples:501
-[HISTORY] Count:10 / 10
-[HISTORY] Latest:32610 ms | Flags:1 | SHOCK
-[EVENT] Time:32610 ms | Flags:1 | SHOCK
-[RECORD] Start:2156 ms | Flags:4 | Type:LIGHT | Samples:501
-Time:33000 ms | Vibration:171 | Light:692 | Sound:52
-Time:34000 ms | Vibration:260 | Light:712 | Sound:64
-Time:35000 ms | Vibration:223 | Light:727 | Sound:54
-Time:36000 ms | Vibration:196 | Light:735 | Sound:62
-Time:37000 ms | Vibration:224 | Light:740 | Sound:66
-[HISTORY] Count:10 / 10
-[HISTORY] Latest:37120 ms | Flags:4 | LIGHT
-[EVENT] Time:37120 ms | Flags:4 | LIGHT
-[RECORD] Start:2156 ms | Flags:4 | Type:LIGHT | Samples:501
-[HISTORY] Count:10 / 10
-[HISTORY] Latest:37800 ms | Flags:2 | SOUND
-[EVENT] Time:37800 ms | Flags:2 | SOUND
-[RECORD] Start:2156 ms | Flags:4 | Type:LIGHT | Samples:501
-Time:38000 ms | Vibration:1115 | Light:732 | Sound:1046
-[HISTORY] Count:10 / 10
-[HISTORY] Latest:38880 ms | Flags:2 | SOUND
-[EVENT] Time:38880 ms | Flags:2 | SOUND
-[RECORD] Start:2156 ms | Flags:4 | Type:LIGHT | Samples:501
-Time:39048 ms | Vibration:1136 | Light:679 | Sound:583
-Time:40000 ms | Vibration:1159 | Light:732 | Sound:228
-Time:41000 ms | Vibration:1179 | Light:723 | Sound:82
-
-========== EVENT HISTORY ==========
-Stored Events: 10 / 10
-[01] [02] Time:37800 ms | Flags:2 | SOUND
-[03] Time:37120 ms | Flags:4 | LIGHT
-[04] Time:32610 ms | Flags:1 | SHOCK
-[05] Time:32260 ms | Flags:4 | LIGHT
-[06] Time:31410 ms | Flags:2 | SOUND
-[07] Time:28450 ms | Flags:4 | LIGHT
-[08] Time:27450 ms | Flags:4 | LIGHT
-[09] Time:26450 ms | Flags:4 | LIGHT
-[10] Time:25680 ms | Flags:2 | SOUND
-===================================
-Time:42196 ms | Vibration:1188 | Light:216 | Sound:33
-Time:43000 ms | Vibration:1195 | Light:264 | Sound:67
-[HISTORY] Count:10 / 10
-[HISTORY] Latest:43380 ms | Flags:4 | LIG[EVENT] Time:43380 ms | Flags:4 | LIGHT
-[RECORD] Start:2156 ms | Flags:4 | Type:LIGHT | Samples:501
-[HISTORY] Count:10 / 10
-[HISTORY] Latest:43650 ms | Flags:1 | SHOCK
-[EVENT] Time:43650 ms | Flags:1 | SHOCK
-[RECORD] Start:2156 ms | Flags:4 | Type:LIGHT | Samples:501
-Time:44000 ms | Vibration:224 | Light:667 | Sound:70
-Time:45000 ms | Vibration:351 | Light:640 | Sound:73
-[HISTORY] Count:10 / 10
-[HISTORY] Latest:45140 ms | Flags:4 | LIG[EVENT] Time:45140 ms | Flags:4 | LIGHT
-[RECORD] Start:2156 ms | Flags:4 | Type:LIGHT | Samples:501
-Time:46000 ms | Vibration:1172 | Light:619 | Sound:56
-[HISTORY] Count:10 / 10
-[HISTORY] Latest:46140 ms | Flags:4 | LIG[EVENT] Time:46140 ms | Flags:4 | LIGHT
-[RECORD] Start:2156 ms | Flags:4 | Type:LIGHT | Samples:501
-Time:47000 ms | Vibration:1195 | Light:608 | Sound:104
-[HISTORY] Count:10 / 10
-[HISTORY] Latest:47140 ms | Flags:4 | LIG[EVENT] Time:47140 ms | Flags:4 | LIGHT
-[RECORD] Start:2156 ms | Flags:4 | Type:LIGHT | Samples:501
-Time:48000 ms | Vibration:1212 | Light:592 | Sound:94
-[HISTORY] Count:10 / 10
-[HISTORY] Latest:48140 ms | Flags:4 | LIGHT
-[EVENT] Time:48140 ms | Flags:4 | LIGHT
-[RECORD] Start:2156 ms | Flags:4 | Type:LIGHT | Samples:501
+[HISTORY] Saved (10/10)
+[EVENT] 27650 ms | Flags:4 | LIGHT
+[RECO[RECORD] Pre:500 | Post:1 | Total:501
+[SENSOR] 28260 ms | V:1227 L:531 S:51
