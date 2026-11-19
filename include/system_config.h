@@ -52,6 +52,10 @@
 #define LIGHT_CHANGE_THRESHOLD 150U // 기존 50 → 150
 #define SOUND_CHANGE_THRESHOLD 900U
 
+/* LIGHT 재감지 해제 조건 */
+#define LIGHT_RESET_CHANGE_THRESHOLD 75U
+#define LIGHT_RESET_DURATION_MS 300U
+
 /*
  * 소음 이벤트 중복 감지 방지
  *
