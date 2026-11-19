@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?><intel_fpga_monitor_program_project version="1.0">
+    <architecture>Nios II</architecture>
+    <system>
+        <sample_system_title>DE1-SoC Computer for Nios II</sample_system_title>
+        <board>DE1-SoC</board>
+        <cable>DE-SoC [USB-1]</cable>
+        <processor>Nios2</processor>
+        <reset_processor_during_load>true</reset_processor_during_load>
+        <terminal>JTAG_UART</terminal>
+    </system>
+    <program>
+        <type>C Program</type>
+        <source_files>
+            <source_file filepath="true">src/display/alarm.c</source_file>
+            <source_file filepath="true">src/display/alarm_audio_driver.c</source_file>
+            <source_file filepath="true">src/display/led_hex.c</source_file>
+            <source_file filepath="true">src/event/event_classifier.c</source_file>
+            <source_file filepath="true">src/event/event_detector.c</source_file>
+            <source_file filepath="true">src/event/risk_level.c</source_file>
+            <source_file filepath="true">src/input/key_switch.c</source_file>
+            <source_file filepath="true">src/sensors/adc.c</source_file>
+            <source_file filepath="true">src/sensors/light.c</source_file>
+            <source_file filepath="true">src/sensors/sensor_manager.c</source_file>
+            <source_file filepath="true">src/sensors/sound.c</source_file>
+            <source_file filepath="true">src/sensors/vibration.c</source_file>
+            <source_file filepath="true">src/storage/event_history.c</source_file>
+            <source_file filepath="true">src/storage/event_record.c</source_file>
+            <source_file filepath="true">src/storage/ring_buffer.c</source_file>
+            <source_file filepath="true">src/system/exception_handler.c</source_file>
+            <source_file filepath="true">src/system/interrupt.c</source_file>
+            <source_file filepath="true">src/system/system_state.c</source_file>
+            <source_file filepath="true">src/system/timer.c</source_file>
+            <source_file filepath="true">src/main.c</source_file>
+            <source_file filepath="true">amp/lib/src/niosII_jtag_uart.c</source_file>
+        </source_files>
+        <options>
+            <compiler_flags>-g -O1 -ffunction-sections -fverbose-asm -fno-inline -mno-cache-volatile</compiler_flags>
+            <linker_flags>-I C:\Users\yoona\gitProgects\MP-2026-TermTest\include -I C:\Users\yoona\gitProgects\MP-2026-TermTest\src\system</linker_flags>
+            <emulate_unimpl_instructions>true</emulate_unimpl_instructions>
+            <use_small_c_library>false</use_small_c_library>
+        </options>
+        <linker_sections type="Exceptions">
+            <linker_section name=".reset">
+                <memory_device>SDRAM.s1</memory_device>
+                <base_address>0x00000000</base_address>
+                <end_address>0x0000001F</end_address>
+                <required_section/>
+                <fixed_base_address/>
+            </linker_section>
+            <linker_section name=".exceptions">
+                <memory_device>SDRAM.s1</memory_device>
+                <base_address>0x00000020</base_address>
+                <end_address>0x000001FF</end_address>
+                <required_section/>
+                <fixed_base_address/>
+            </linker_section>
+            <linker_section name=".text">
+                <memory_device>SDRAM.s1</memory_device>
+                <base_address>0x00000200</base_address>
+                <end_address>0x03FFFFFF</end_address>
+                <required_section/>
+            </linker_section>
+        </linker_sections>
+    </program>
+</intel_fpga_monitor_program_project>
