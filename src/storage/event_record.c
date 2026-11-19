@@ -13,25 +13,26 @@ typedef enum
     RECORD_SAVED
 } RecordStatus;
 
-/* 이벤트 전후 센서 데이터 */
+/* 최신 이벤트 전후 센서 데이터 저장 공간 */
 static SensorSample record[EVENT_RECORD_SIZE];
 
-/* 현재 Record의 이벤트 정보 */
+/* 가장 최근 이벤트 정보 */
 static EventInfo event_info;
 
-/* 전체 기록 샘플 개수 */
+/* 현재 기록된 전체 샘플 수 */
 static uint32_t record_count = 0U;
 
-/* 이벤트 이후 샘플 개수 */
+/* 이벤트 이후 저장한 샘플 수 */
 static uint32_t post_count = 0U;
 
-/* 현재 Record 상태 */
+/* 현재 기록 상태 */
 static RecordStatus record_status = RECORD_EMPTY;
 
 /* 유효한 이벤트 플래그 */
 #define VALID_EVENT_FLAGS \
     (EVENT_SHOCK | EVENT_SOUND | EVENT_LIGHT)
 
+/* 이벤트 플래그 유효성 검사 */
 static bool event_flags_valid(uint8_t flags)
 {
     return flags != EVENT_NONE &&
@@ -44,13 +45,21 @@ void event_record_init(void)
     event_record_clear();
 }
 
-/* 최초 이벤트 발생 시 기록 시작 */
+/*
+ * 최신 이벤트 발생 시 Record 전체 교체
+ *
+ * EMPTY  -> 새로운 Record 시작
+ * ACTIVE -> 진행 중인 Record를 최신 이벤트로 교체
+ * SAVED  -> 완료된 Record를 최신 이벤트로 교체
+ *
+ * 최초 이벤트가 아닌 가장 최근 이벤트 기준으로
+ * 이전 500개 + 이후 500개 센서 데이터를 저장
+ */
 bool event_record_trigger(const EventInfo *event)
 {
     uint32_t pre_count;
 
-    if (event == NULL ||
-        record_status != RECORD_EMPTY)
+    if (event == NULL)
     {
         return false;
     }
@@ -60,13 +69,9 @@ bool event_record_trigger(const EventInfo *event)
         return false;
     }
 
-    /* 최초 이벤트 정보 저장 */
-    event_info = *event;
-
-    record_count = 0U;
-    post_count = 0U;
-
-    /* 이벤트 이전 센서 데이터 개수 */
+    /*
+     * 현재 Ring Buffer의 이전 데이터 개수 확인
+     */
     pre_count = ring_buffer_count();
 
     if (pre_count > PRE_EVENT_SAMPLES)
@@ -74,7 +79,17 @@ bool event_record_trigger(const EventInfo *event)
         pre_count = PRE_EVENT_SAMPLES;
     }
 
-    /* 이전 샘플을 시간순으로 복사 */
+    /*
+     * 최신 이벤트 정보 저장
+     * timestamp와 flags 모두 새 이벤트 값으로 교체
+     */
+    event_info = *event;
+
+    /* 기존 Record 초기화 */
+    record_count = 0U;
+    post_count = 0U;
+
+    /* 최신 이벤트 이전 센서 데이터 복사 */
     for (uint32_t i = 0U; i < pre_count; i++)
     {
         SensorSample sample;
@@ -88,30 +103,16 @@ bool event_record_trigger(const EventInfo *event)
         record[record_count++] = sample;
     }
 
-    /* 이후 센서 데이터 수집 시작 */
+    /* 최신 이벤트 이후 센서 데이터 수집 시작 */
     record_status = RECORD_ACTIVE;
 
     return true;
 }
 
-/* ACTIVE 상태에서 이벤트 플래그 누적 */
-void event_record_add_flags(uint8_t flags)
-{
-    if (record_status != RECORD_ACTIVE)
-    {
-        return;
-    }
-
-    if (!event_flags_valid(flags))
-    {
-        return;
-    }
-
-    /* 기존 Flags에 새로운 이벤트 종류 추가 */
-    event_info.event_flags |= flags;
-}
-
-/* 이벤트 이후 센서 데이터 저장 */
+/*
+ * 최신 이벤트 이후 센서 데이터 저장
+ * 이벤트 발생 직후부터 500개 수집
+ */
 void event_record_update(const SensorSample *sample)
 {
     if (sample == NULL ||
@@ -129,20 +130,20 @@ void event_record_update(const SensorSample *sample)
     record[record_count++] = *sample;
     post_count++;
 
-    /* 이후 500개 샘플 수집 완료 */
+    /* 최신 이벤트 이후 500개 수집 완료 */
     if (post_count == POST_EVENT_SAMPLES)
     {
         record_status = RECORD_SAVED;
     }
 }
 
-/* Record 저장 완료 여부 */
+/* 최신 Record 저장 완료 여부 */
 bool event_record_is_saved(void)
 {
     return record_status == RECORD_SAVED;
 }
 
-/* Record 이벤트 정보 조회 */
+/* 최신 이벤트 정보 조회 */
 bool event_record_get_info(EventInfo *out)
 {
     if (out == NULL ||
@@ -156,15 +157,16 @@ bool event_record_get_info(EventInfo *out)
     return true;
 }
 
-/* 저장된 센서 샘플 개수 */
+/* 현재 기록된 전체 센서 샘플 수 */
 uint32_t event_record_get_count(void)
 {
     return record_count;
 }
 
-/* 센서 샘플 조회 */
-bool event_record_get_sample(uint32_t index,
-                             SensorSample *out)
+/* 저장된 센서 샘플 조회 */
+bool event_record_get_sample(
+    uint32_t index,
+    SensorSample *out)
 {
     if (out == NULL ||
         index >= record_count)
