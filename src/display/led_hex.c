@@ -1,148 +1,397 @@
 
-#include "led_hex.h"          // 이 모듈의 공개 함수 선언
-#include "event_classifier.h" // event_classify(): 이벤트 플래그 -> HEX 코드
-#include "project_types.h"   // EVENT_SHOCK, EVENT_SOUND, EVENT_LIGHT
-#include "system_config.h"   // LED_BLINK_INTERVAL_MS, DISPLAY_* 설정값
-#include <stdbool.h>          // bool, true, false
-#include <stdint.h>           // uint8_t, uint32_t, uintptr_t
+#include "../../include/led_hex.h"
+#include "../../include/event_classifier.h"
+#include "../../include/project_types.h"
+#include "../../include/system_config.h"
+
+#include <stdbool.h>
+#include <stdint.h>
 
 /*
- * 실행 환경 선택 (둘 중 하나를 컴파일할 때 지정한다.)
+ * 실행 환경 선택
  *
- * -DLED_HEX_HOST_TEST        : Mac/PC에서 가상 레지스터를 사용한다.
- * -DLED_HEX_DE1_SOC_COMPUTER : 표준 DE1-SoC Computer(Nios II)의 레지스터 사용.
+ * 실제 DE1-SoC:
+ *   -DLED_HEX_DE1_SOC_COMPUTER
  *
- * 교수님이 제공한 Nios II 하드웨어 구성이 표준 DE1-SoC Computer와
- * 다르다면 실제 주소는 해당 BSP/Platform Designer 설정으로 확인해야 한다.
- * 단순히 Mac에서 -DLED_HEX_DE1_SOC_COMPUTER를 쓰면 안 된다.
+ * 기존 PC 단위 테스트:
+ *   -DLED_HEX_HOST_TEST
  */
-#if defined(LED_HEX_HOST_TEST) && defined(LED_HEX_DE1_SOC_COMPUTER)
-#error "Select only one LED/HEX execution environment."
+#if defined(LED_HEX_HOST_TEST) && \
+    defined(LED_HEX_DE1_SOC_COMPUTER)
+
+#error "Select only one LED/HEX environment."
+
 #elif defined(LED_HEX_HOST_TEST)
-// Mac에서는 하드웨어 대신 아래 변수에 출력을 저장하여 테스트한다.
+
 static volatile uint32_t s_mock_ledr;
 static volatile uint32_t s_mock_hex30;
 static volatile uint32_t s_mock_hex54;
-#define LEDR_REG      (&s_mock_ledr)
-#define HEX30_REG     (&s_mock_hex30)
-#define HEX54_REG     (&s_mock_hex54)
 
-// 단위 테스트에서만 사용하는 레지스터 조회 함수 (공개 API 아님).
-uint32_t led_hex_test_read_ledr(void)  { return s_mock_ledr; }
-uint32_t led_hex_test_read_hex30(void) { return s_mock_hex30; }
-uint32_t led_hex_test_read_hex54(void) { return s_mock_hex54; }
+#define LEDR_REG  (&s_mock_ledr)
+#define HEX30_REG (&s_mock_hex30)
+#define HEX54_REG (&s_mock_hex54)
+
+uint32_t led_hex_test_read_ledr(void)
+{
+    return s_mock_ledr;
+}
+
+uint32_t led_hex_test_read_hex30(void)
+{
+    return s_mock_hex30;
+}
+
+uint32_t led_hex_test_read_hex54(void)
+{
+    return s_mock_hex54;
+}
 
 #elif defined(LED_HEX_DE1_SOC_COMPUTER)
-// Intel DE1-SoC Computer / Nios II 참조 하드웨어의 메모리 맵.
-#define LEDR_REG  ((volatile uint32_t *)(uintptr_t)0xFF200000U)
-#define HEX30_REG ((volatile uint32_t *)(uintptr_t)0xFF200020U)
-#define HEX54_REG ((volatile uint32_t *)(uintptr_t)0xFF200030U)
+
+#define LEDR_REG \
+    ((volatile uint32_t *)(uintptr_t)0xFF200000U)
+
+#define HEX30_REG \
+    ((volatile uint32_t *)(uintptr_t)0xFF200020U)
+
+#define HEX54_REG \
+    ((volatile uint32_t *)(uintptr_t)0xFF200030U)
+
 #else
-#error "Use -DLED_HEX_HOST_TEST (Mac) or -DLED_HEX_DE1_SOC_COMPUTER (Nios II)."
+
+#error "Select LED/HEX execution environment."
+
 #endif
 
-// 각 7-Segment 숫자(0~4)의 a~g 점등 비트: 1이면 해당 구간 ON.
+
+/*
+ * LEDR0~9 전체 점등 비트마스크
+ *
+ * 0x3FF = 0000001111111111 (10개 LED ON)
+ */
+#define ALL_LEDS_MASK 0x3FFU
+
+
+/* 7-Segment 숫자 0~4 */
 static const uint8_t s_seven_segment[5] = {
-    0x3FU,  // 0: a,b,c,d,e,f
-    0x06U,  // 1: b,c
-    0x5BU,  // 2: a,b,d,e,g
-    0x4FU,  // 3: a,b,c,d,g
-    0x66U   // 4: b,c,f,g
+    0x3FU,  /* 0 */
+    0x06U,  /* 1 */
+    0x5BU,  /* 2 */
+    0x4FU,  /* 3 */
+    0x66U   /* 4 */
 };
 
-static uint8_t s_active_flags;     // 현재 표시 중인 이벤트 비트 조합
-static bool s_led_is_on;           // 현재 점멸 주기에서 LED가 켜진 상태인가?
-static bool s_time_initialized;    // led_hex_update()로 점멸 기준시각을 받았는가?
-static uint32_t s_last_toggle_ms;  // 점멸 상태가 마지막으로 바뀐 기준 시각
 
-/* 두 자리 HEX에 '0'과 이벤트 표시 코드(0~4)를 표시한다. */
+/*
+ * 일반 이벤트 LED 상태
+ */
+static uint8_t s_active_flags;
+static bool s_led_is_on;
+static bool s_time_initialized;
+static uint32_t s_last_toggle_ms;
+
+
+/*
+ * 초기 측정 완료 LED 알림 상태
+ */
+static bool s_ready_active;
+static bool s_ready_complete;
+
+static uint32_t s_ready_start_ms;
+static uint32_t s_ready_phase;
+
+
+/*
+ * HEX1 HEX0에 두 자리 숫자 표시
+ */
 static void write_hex_code(uint8_t display_code)
 {
-    if (display_code > DISPLAY_MULTIPLE) { // 유효하지 않은 코드 보호
+    if (display_code > DISPLAY_MULTIPLE) {
         display_code = DISPLAY_NONE;
     }
 
-    // HEX1(왼쪽 한 자리)에 '0', HEX0(오른쪽 한 자리)에 0~4 표시.
-    // HEX3, HEX2는 0으로 두어 끈다. (각 자리는 8비트 간격)
-    *HEX30_REG = ((uint32_t)s_seven_segment[0] << 8)
-            | (uint32_t)s_seven_segment[display_code];
+    /* HEX1: 0, HEX0: 이벤트 코드 */
+    *HEX30_REG =
+        ((uint32_t)s_seven_segment[0] << 8) |
+        (uint32_t)s_seven_segment[display_code];
 
-    // 이번 1주차 출력에서는 HEX4~HEX5도 비워둔다.
+    /* HEX4~5 OFF */
     *HEX54_REG = 0U;
 }
 
-/* 현재 점멸 상태와 이벤트 종류에 맞게 LED0~2를 출력한다. */
+
+/*
+ * 일반 이벤트 LED 출력
+ *
+ * 충격 -> LED0
+ * 소음 -> LED1
+ * 조도 -> LED2
+ */
 static void write_leds(void)
 {
-    // EVENT_SHOCK=bit0 -> LED0, SOUND=bit1 -> LED1, LIGHT=bit2 -> LED2.
-    // 따라서 이벤트 플래그를 그대로 LED 비트마스크로 사용할 수 있다.
-    *LEDR_REG = s_led_is_on ? (uint32_t)s_active_flags : 0U;
+    if (s_led_is_on) {
+        *LEDR_REG = (uint32_t)s_active_flags;
+    }
+    else {
+        *LEDR_REG = 0U;
+    }
 }
 
-/* LED 출력 OFF, HEX는 정상 코드 '00'으로 초기화한다. */
+
+/*
+ * LED / HEX 모듈 초기화
+ */
 void led_hex_init(void)
 {
-    s_active_flags = EVENT_NONE;      // 현재 출력 중인 이벤트 없음
-    s_led_is_on = false;              // LED 점등 상태 해제
-    s_time_initialized = false;       // 점멸 기준시각 초기화
+    /* 일반 이벤트 상태 초기화 */
+    s_active_flags = EVENT_NONE;
+    s_led_is_on = false;
+    s_time_initialized = false;
     s_last_toggle_ms = 0U;
-    write_leds();                     // LED0~9 OFF
-    write_hex_code(DISPLAY_NONE);     // HEX1 HEX0: 00
+
+    /* 초기 측정 완료 알림 상태 초기화 */
+    s_ready_active = false;
+    s_ready_complete = false;
+
+    s_ready_start_ms = 0U;
+    s_ready_phase = 0U;
+
+    /* 전체 LED OFF */
+    write_leds();
+
+    /* HEX 00 표시 */
+    write_hex_code(DISPLAY_NONE);
 }
 
-/* 새 이벤트가 발생하면 LED 조합과 HEX 표시 내용을 갱신한다. */
+
+/*
+ * 초기 평균 측정 완료 LED 알림 시작
+ *
+ * LEDR0~9 전체를 3회 점멸
+ *
+ * 150ms ON
+ * 150ms OFF
+ *
+ * 총 900ms
+ */
+void led_hex_ready_start(uint32_t timestamp_ms)
+{
+    /* 기존 이벤트 표시 초기화 */
+    led_hex_clear();
+
+    /* 알림 시작 상태 */
+    s_ready_active = true;
+    s_ready_complete = false;
+
+    s_ready_start_ms = timestamp_ms;
+    s_ready_phase = 0U;
+
+    /* 첫 번째 점멸: 전체 LED 즉시 ON */
+    *LEDR_REG = ALL_LEDS_MASK;
+}
+
+
+/*
+ * 초기 측정 완료 LED 알림 종료 여부
+ */
+bool led_hex_ready_is_complete(void)
+{
+    return s_ready_complete;
+}
+
+
+/*
+ * 이벤트 발생 시 LED / HEX 표시
+ */
 void led_hex_show(uint8_t event_flags)
 {
     const uint8_t valid_mask =
-        (uint8_t)(EVENT_SHOCK | EVENT_SOUND | EVENT_LIGHT);
-    const uint8_t flags = (uint8_t)(event_flags & valid_mask);
+        (uint8_t)(
+            EVENT_SHOCK |
+            EVENT_SOUND |
+            EVENT_LIGHT
+        );
 
-    if (flags == EVENT_NONE) {        // 이벤트가 없으면 정상 출력으로 복귀
+    const uint8_t flags =
+        (uint8_t)(event_flags & valid_mask);
+
+    /*
+     * 초기 완료 알림이 진행 중이면
+     * 이벤트 표시가 LED 점멸을 방해하지 않도록 함
+     */
+    if (s_ready_active) {
+        return;
+    }
+
+    /* 이벤트 없음 */
+    if (flags == EVENT_NONE) {
         led_hex_clear();
         return;
     }
 
-    if (flags != s_active_flags) {    // 새 이벤트(또는 종류 변경)일 때
+    /* 새 이벤트 또는 이벤트 종류 변경 */
+    if (flags != s_active_flags) {
+
         s_active_flags = flags;
-        s_led_is_on = true;           // 즉시 해당 LED 켜기
-        s_time_initialized = false;   // 다음 update 호출에서 점멸 시작시각 설정
+
+        /* 이벤트 LED 즉시 ON */
+        s_led_is_on = true;
+
+        /* 점멸 시간 다시 시작 */
+        s_time_initialized = false;
     }
 
-    write_leds();                     // 해당하는 LED를 동시에 점등
-    write_hex_code(event_classify(flags)); // 비트 플래그를 0~4로 변환해 HEX 표시
+    /* 이벤트 LED 출력 */
+    write_leds();
+
+    /* 이벤트 종류를 HEX에 표시 */
+    write_hex_code(event_classify(flags));
 }
 
-/* 시스템 시간에 맞춰 LED를 점멸시킨다. delay()를 사용하지 않는다. */
+
+/*
+ * LED 점멸 갱신
+ *
+ * 1. 초기 측정 완료 LED 전체 점멸
+ * 2. 일반 이벤트 LED 점멸
+ *
+ * delay() 없이 시스템 시간 사용
+ */
 void led_hex_update(uint32_t timestamp_ms)
 {
-    if (s_active_flags == EVENT_NONE) {  // 표시 중인 이벤트가 없으면 무동작
+    /*
+     * 1. 초기 측정 완료 LED 알림
+     */
+    if (s_ready_active) {
+
+        const uint32_t elapsed =
+            timestamp_ms - s_ready_start_ms;
+
+        const uint32_t total_duration =
+            2U *
+            READY_LED_BLINK_INTERVAL_MS *
+            READY_LED_BLINK_COUNT;
+
+        /*
+         * LED 전체 3회 점멸 완료
+         */
+        if (elapsed >= total_duration) {
+
+            /* 전체 LED OFF */
+            *LEDR_REG = 0U;
+
+            s_ready_active = false;
+            s_ready_complete = true;
+
+            return;
+        }
+
+        /*
+         * 현재 점멸 구간 계산
+         *
+         * phase 0: ON
+         * phase 1: OFF
+         * phase 2: ON
+         * phase 3: OFF
+         * phase 4: ON
+         * phase 5: OFF
+         */
+        const uint32_t phase =
+            elapsed / READY_LED_BLINK_INTERVAL_MS;
+
+        /*
+         * 점멸 구간이 변경된 경우에만
+         * LED 레지스터 갱신
+         */
+        if (phase != s_ready_phase) {
+
+            s_ready_phase = phase;
+
+            if ((phase & 1U) == 0U) {
+                *LEDR_REG = ALL_LEDS_MASK;
+            }
+            else {
+                *LEDR_REG = 0U;
+            }
+        }
+
         return;
     }
 
-    if (!s_time_initialized) {         // 이벤트 발생 직후 첫 update
+
+    /*
+     * 2. 일반 이벤트 LED 점멸
+     */
+
+    /* 이벤트가 없으면 갱신하지 않음 */
+    if (s_active_flags == EVENT_NONE) {
+        return;
+    }
+
+    /* 이벤트 발생 직후 첫 점멸 기준시간 설정 */
+    if (!s_time_initialized) {
+
         s_last_toggle_ms = timestamp_ms;
         s_time_initialized = true;
+
         return;
     }
 
-    // unsigned 연산으로 시스템 시간의 uint32_t 래핑도 고려한다.
-    const uint32_t elapsed = timestamp_ms - s_last_toggle_ms;
-    if (elapsed < LED_BLINK_INTERVAL_MS) { // 아직 점멸 간격 미경과
+    /* 마지막 점멸 이후 경과시간 */
+    const uint32_t elapsed =
+        timestamp_ms - s_last_toggle_ms;
+
+    /* 점멸 간격에 도달하지 않음 */
+    if (elapsed < LED_BLINK_INTERVAL_MS) {
         return;
     }
 
-    // 호출이 늦어졌다면 경과한 점멸 간격 개수를 한 번에 반영한다.
-    const uint32_t periods = elapsed / LED_BLINK_INTERVAL_MS;
-    s_last_toggle_ms += periods * LED_BLINK_INTERVAL_MS;
+    /*
+     * 점멸 주기 계산
+     *
+     * 메인 루프 호출이 지연돼도
+     * 실제 경과시간을 기준으로 동작
+     */
+    const uint32_t periods =
+        elapsed / LED_BLINK_INTERVAL_MS;
 
-    if ((periods & 1U) != 0U) {        // 홀수 번 바뀌면 LED 상태 반전
+    s_last_toggle_ms +=
+        periods * LED_BLINK_INTERVAL_MS;
+
+    /* 홀수 회 점멸 상태가 변경되면 반전 */
+    if ((periods & 1U) != 0U) {
+
         s_led_is_on = !s_led_is_on;
-        write_leds();                 // HEX는 유지, LED만 갱신
+
+        write_leds();
     }
 }
 
-/* KEY1 기록 초기화 등에서 호출: 출력만 정상 상태로 돌린다. */
+
+/*
+ * LED / HEX 이벤트 표시 초기화
+ *
+ * KEY1에서 호출
+ *
+ * 초기 측정 완료 알림이 진행 중일 경우
+ * 해당 알림은 취소하지 않음
+ */
 void led_hex_clear(void)
 {
-    led_hex_init();                   // 버퍼/이벤트 기록 데이터에는 접근하지 않음
+    s_active_flags = EVENT_NONE;
+
+    s_led_is_on = false;
+    s_time_initialized = false;
+    s_last_toggle_ms = 0U;
+
+    /*
+     * 준비 완료 알림 중이라면
+     * 전체 LED 점멸 상태 유지
+     */
+    if (!s_ready_active) {
+        write_leds();
+    }
+
+    /* HEX 00 표시 */
+    write_hex_code(DISPLAY_NONE);
 }

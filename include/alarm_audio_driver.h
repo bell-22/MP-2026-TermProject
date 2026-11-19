@@ -4,23 +4,25 @@
 
 #include <stdint.h>
 
+/* DE1-SoC Audio-out FIFO 및 드라이버 상태 초기화 */
+void alarm_audio_init(void);
+
 /*
- * Audio-out 경고음 출력 인터페이스
+ * 경고음 출력 주파수 설정
  *
- * frequency_hz == 0:
- *     경고음 출력 중지
- *
- * frequency_hz > 0:
- *     지정한 주파수의 경고음 출력
- *
- * 실제 DE1-SoC에서는 Audio CODEC을
- * 사용하는 드라이버가 이 함수를 구현한다.
- *
- * Mac Mock 테스트에서는 test_alarm.c가
- * 가상 구현을 제공한다.
+ * 0Hz: 경고음 중지
+ * 600Hz: 복합 이벤트 낮은 음
+ * 800Hz: 일반 이벤트 경고음
+ * 1200Hz: 복합 이벤트 높은 음
  */
-void alarm_audio_set_frequency(
-    uint32_t frequency_hz
-);
+void alarm_audio_set_frequency(uint32_t frequency_hz);
+
+/*
+ * Audio-out FIFO에 실제 PCM 샘플 공급
+ *
+ * 경고음을 재생하는 동안 main 반복문에서
+ * 지속적으로 호출해야 한다.
+ */
+void alarm_audio_update(void);
 
 #endif /* ALARM_AUDIO_DRIVER_H */

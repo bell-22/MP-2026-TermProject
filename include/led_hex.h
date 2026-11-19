@@ -2,19 +2,63 @@
 #ifndef LED_HEX_H
 #define LED_HEX_H
 
-#include <stdint.h>  // uint8_t, uint32_t 자료형 사용
+#include <stdint.h>
+#include <stdbool.h>
 
 /*
- * LED / 7-Segment 출력 모듈 (연경 담당)
+ * LED / 7-Segment 출력 모듈
  *
- * 입력값은 HEX 표시 코드가 아닌 이벤트 비트 플래그다.
- *   충격 = EVENT_SHOCK (1), 소음 = EVENT_SOUND (2), 조도 = EVENT_LIGHT (4)
- *   동시 이벤트는 비트 OR로 전달한다. 예: EVENT_SHOCK | EVENT_SOUND
+ * 이벤트 표시:
+ *   충격 = EVENT_SHOCK (1) -> LED0
+ *   소음 = EVENT_SOUND (2) -> LED1
+ *   조도 = EVENT_LIGHT (4) -> LED2
+ *
+ * HEX 표시:
+ *   정상 = 00
+ *   충격 = 01
+ *   소음 = 02
+ *   조도 = 03
+ *   복합 = 04
  */
 
-void led_hex_init(void);                         // LED OFF, HEX 00으로 초기화
-void led_hex_show(uint8_t event_flags);         // 이벤트 LED 조합 및 HEX 00~04 표시
-void led_hex_update(uint32_t timestamp_ms);     // 250ms 간격 LED 점멸 갱신 (논블로킹)
-void led_hex_clear(void);                        // LED OFF, HEX 00으로 초기화 (기록은 보존)
+/* LED / HEX 초기화 */
+void led_hex_init(void);
 
-#endif // LED_HEX_H
+/* 이벤트 발생 시 LED / HEX 표시 */
+void led_hex_show(uint8_t event_flags);
+
+/*
+ * LED 점멸 상태 갱신
+ *
+ * 일반 이벤트 LED 점멸과
+ * 초기 측정 완료 LED 점멸을 함께 처리
+ */
+void led_hex_update(uint32_t timestamp_ms);
+
+/* 이벤트 LED / HEX 초기화 */
+void led_hex_clear(void);
+
+
+/*
+ * 초기 평균 측정 완료 알림 시작
+ *
+ * LEDR0~9 전체를 3회 점멸
+ *
+ * timestamp_ms:
+ *   점멸을 시작하는 시스템 시간
+ */
+void led_hex_ready_start(uint32_t timestamp_ms);
+
+
+/*
+ * 초기 측정 완료 알림 종료 여부
+ *
+ * true:
+ *   LED 전체 점멸이 끝나 실험 시작 가능
+ *
+ * false:
+ *   아직 시작하지 않았거나 점멸 진행 중
+ */
+bool led_hex_ready_is_complete(void);
+
+#endif /* LED_HEX_H */
