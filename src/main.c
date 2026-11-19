@@ -56,7 +56,6 @@
 #define JTAG_UART_CONTROL \
     (*(volatile uint32_t *)(uintptr_t)(JTAG_UART_BASE + 0x04U))
 
-#define INITIAL_CALIBRATION_MS 5000U
 #define HISTORY_PRINT_INTERVAL_MS 10000U
 #define SENSOR_PRINT_INTERVAL_MS 1000U
 
@@ -639,7 +638,7 @@ int main(void)
              * 최초 5초 이상 경과하고
              * Ring Buffer에 500개 이상 확보
              */
-            if (elapsed_ms >= INITIAL_CALIBRATION_MS &&
+            if (elapsed_ms >= BASELINE_CALIBRATION_MS &&
                 ring_buffer_count() >= PRE_EVENT_SAMPLES)
             {
                 if (baseline_count == 0U)

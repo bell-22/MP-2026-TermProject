@@ -32,8 +32,6 @@
 // 저장 가능한 이벤트 기록 개수
 #define MAX_EVENT_RECORDS 1U
 
-
-
 /* 3. Event Detection */
 
 /*
@@ -42,15 +40,16 @@
  * 프로그램 시작 후 1초 동안
  * 진동 / 조도 / 소음 평균값 계산
  */
-#define BASELINE_CALIBRATION_MS 1000U
+#define BASELINE_CALIBRATION_MS 5000U
 
 /*
  * 초기 평균값 대비 변화량 임계값
  *
  * 실제 보드 실험을 통해 추후 조정
  */
+/* 초기 평균값 대비 변화량 임계값 */
 #define SHOCK_CHANGE_THRESHOLD 400U
-#define LIGHT_CHANGE_THRESHOLD 50U
+#define LIGHT_CHANGE_THRESHOLD 150U // 기존 50 → 150
 #define SOUND_CHANGE_THRESHOLD 900U
 
 /*
@@ -68,7 +67,6 @@
 
 /* 연속 2회 이상 감지 시 이벤트 확정 */
 #define EVENT_CONFIRM_SAMPLES 2U
-
 
 /* 4. KEY & Alarm */
 
@@ -97,11 +95,11 @@
 // 일반 경고음 사이 무음 시간
 #define ALARM_GAP_MS 100U
 
-// 복합 이벤트 경고음 1회 지속시간 
+// 복합 이벤트 경고음 1회 지속시간
 #define ALARM_MULTIPLE_DURATION_MS 400U
 
 // 복합 이벤트 두 음 사이 무음 시간
-//#define ALARM_MULTIPLE_GAP_MS 200U
+// #define ALARM_MULTIPLE_GAP_MS 200U
 
 /* 5. Display Codes */
 
