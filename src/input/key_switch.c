@@ -1,14 +1,13 @@
-#include "key_switch.h"
-#include "system_config.h"
+
+#include "../../include/key_switch.h"
+#include "../../include/system_config.h"
 #include <stdbool.h>
 
-/*
- * Nios II에서 사용할 경우 실제 BSP 확인 후
- * KEY_SWITCH_NIOS_HAL 매크로를 활성화한다.
- */
-#if defined(KEY_SWITCH_NIOS_HAL)
-#include <sys/alt_irq.h>
+/* Nios II 보드에서만 제어 레지스터 사용 */
+#if defined(__nios2_arch__)
+#include "../../include/nios2_ctrl_reg_macros.h"
 #endif
+
 
 /* ISR에서 저장하고 메인 루프에서 처리하는 KEY 요청 */
 static volatile uint8_t s_pending_events;
@@ -78,27 +77,31 @@ void key_irq_notify(uint8_t pressed_mask,
 }
 
 
+
 /* 메인 루프에서 KEY 입력 요청 확인 */
 uint8_t key_take_events(void)
 {
     uint8_t events;
 
-#if defined(KEY_SWITCH_NIOS_HAL)
-    /*
-     * 실제 Nios II 환경에서는 읽기/초기화 도중
-     * IRQ가 발생해 요청이 유실되지 않도록 보호한다.
-     */
-    alt_irq_context context = alt_irq_disable_all();
+#if defined(__nios2_arch__)
+    uint32_t saved_status;
+
+    /* 현재 CPU 인터럽트 상태 저장 */
+    NIOS2_READ_STATUS(saved_status);
+
+    /* 이벤트를 읽는 동안 인터럽트 잠시 차단 */
+    NIOS2_WRITE_STATUS(saved_status & ~1u);
 #endif
 
-    /* 현재 누적된 KEY 요청 가져오기 */
+    /* 누적된 KEY0, KEY1 입력 가져오기 */
     events = s_pending_events;
 
-    /* 처리한 요청 제거 */
+    /* 가져온 이벤트만 초기화 */
     s_pending_events = KEY_EVENT_NONE;
 
-#if defined(KEY_SWITCH_NIOS_HAL)
-    alt_irq_enable_all(context);
+#if defined(__nios2_arch__)
+    /* 이전 CPU 인터럽트 상태 복원 */
+    NIOS2_WRITE_STATUS(saved_status);
 #endif
 
     return events;

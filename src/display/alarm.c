@@ -1,7 +1,7 @@
 
-#include "alarm.h"
-#include "alarm_audio_driver.h"
-#include "system_config.h"
+#include "../../include/alarm.h"
+#include "../../include/alarm_audio_driver.h"
+#include "../../include/system_config.h"
 
 /* 현재 경고 패턴 진행 여부 */
 static bool s_active;
