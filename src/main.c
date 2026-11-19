@@ -1,21 +1,15 @@
 
 /*
  * DE1-SoC Sensor Blackbox
- * Stage 1 + Storage Integration
+ * Stage 1 + Storage Integration Test
  *
- * - Vibration / Light / Sound input
- * - Timer IRQ0: 1ms tick, 10ms sampling
- * - KEY IRQ1: KEY0 / KEY1
- * - Initial baseline calibration: 5 seconds
- * - Ready signal: LEDR0~9 blink 3 times
- * - Event detection and classification
- * - Risk level evaluation
- * - LED / HEX output
- * - Audio-out alarm
- * - Ring Buffer: latest 500 sensor samples
- * - Event Record: latest event pre/post samples
- * - Event History: latest 10 event logs
- * - Direct JTAG UART debug output
+ * - Initial calibration: 5 seconds
+ * - Sensor sampling: 10ms
+ * - Sensor console output: 1 second
+ * - Ring Buffer: latest 500 samples
+ * - Event Record: latest event pre/post 500 samples
+ * - Event History: latest 10 events
+ * - History console output: 10 seconds
  *
  * KEY0: Alarm stop
  * KEY1: LED/HEX clear
@@ -39,7 +33,6 @@
 #include "../include/alarm.h"
 #include "../include/alarm_audio_driver.h"
 
-/* Storage */
 #include "../include/ring_buffer.h"
 #include "../include/event_record.h"
 #include "../include/event_history.h"
@@ -56,8 +49,12 @@
 #define JTAG_UART_CONTROL \
     (*(volatile uint32_t *)(uintptr_t)(JTAG_UART_BASE + 0x04U))
 
-#define HISTORY_PRINT_INTERVAL_MS 10000U
+#define INITIAL_CALIBRATION_MS 5000U
 #define SENSOR_PRINT_INTERVAL_MS 1000U
+#define HISTORY_PRINT_INTERVAL_MS 10000U
+
+/* Record 대표 샘플 출력 간격: 100개 = 약 1초 */
+#define RECORD_PRINT_STEP 100U
 
 /* =====================================
  * Startup State
@@ -71,7 +68,7 @@ typedef enum
 } StartupState;
 
 /* =====================================
- * Direct JTAG UART Output
+ * Direct JTAG UART
  * ===================================== */
 
 static void uart_print(const char *str)
@@ -133,21 +130,24 @@ static const char *event_flags_name(uint8_t flags)
 }
 
 /* =====================================
- * Sensor Console Output
+ * Sensor Sample Output
  * ===================================== */
 
-static void print_sensor_sample(const SensorSample *sample)
+static void print_sensor_sample(
+    const char *prefix,
+    const SensorSample *sample)
 {
     char msg[160];
 
-    if (sample == NULL)
+    if (prefix == NULL || sample == NULL)
     {
         return;
     }
 
     (void)snprintf(
         msg, sizeof(msg),
-        "[SENSOR] %lu ms | V:%u L:%u S:%u\n",
+        "%s %lu ms | V:%u L:%u S:%u\n",
+        prefix,
         (unsigned long)sample->timestamp_ms,
         (unsigned)sample->vibration,
         (unsigned)sample->light,
@@ -157,7 +157,7 @@ static void print_sensor_sample(const SensorSample *sample)
 }
 
 /* =====================================
- * Event History Console Output
+ * Event History Output
  * ===================================== */
 
 static void print_event_history(void)
@@ -171,7 +171,6 @@ static void print_event_history(void)
         msg, sizeof(msg),
         "Stored Events: %lu / 10\n",
         (unsigned long)count);
-
     uart_print(msg);
 
     if (count == 0U)
@@ -201,29 +200,113 @@ static void print_event_history(void)
 }
 
 /* =====================================
- * Event Record Console Output
+ * Record BEFORE Output
+ *
+ * Record에 복사된 이전 센서 데이터에서
+ * 100개 간격으로 대표 샘플 출력
+ *
+ * 모든 센서 데이터는 실제 Record에 보존
  * ===================================== */
 
-static void print_event_record(void)
+static void print_record_before(uint32_t pre_count,
+                                uint8_t flags)
 {
-    char msg[160];
-    EventInfo info;
-
-    if (!event_record_get_info(&info))
-    {
-        uart_print("[RECORD] Empty\n");
-        return;
-    }
+    SensorSample stored;
+    char msg[100];
 
     (void)snprintf(
         msg, sizeof(msg),
-        "[RECORD] Time:%lu ms | Flags:%u | %s | Samples:%lu\n",
+        "[RECORD] %s | BEFORE (%lu samples)\n",
+        event_flags_name(flags),
+        (unsigned long)pre_count);
+    uart_print(msg);
+
+    if (pre_count == 0U)
+    {
+        uart_print("  No previous samples\n");
+        return;
+    }
+
+    for (uint32_t i = 0U;
+         i < pre_count;
+         i += RECORD_PRINT_STEP)
+    {
+        if (event_record_get_sample(i, &stored))
+        {
+            print_sensor_sample("  ", &stored);
+        }
+    }
+
+    /* 마지막 샘플도 출력 */
+    if ((pre_count - 1U) % RECORD_PRINT_STEP != 0U)
+    {
+        if (event_record_get_sample(pre_count - 1U, &stored))
+        {
+            print_sensor_sample("  ", &stored);
+        }
+    }
+}
+
+/* =====================================
+ * Record AFTER Output
+ *
+ * 이벤트 이후 수집한 실제 샘플 출력
+ * 첫 번째 샘플 + 이후 100개 간격
+ * ===================================== */
+
+static void print_record_after(
+    uint32_t post_count,
+    const SensorSample *sample)
+{
+    if (sample == NULL)
+    {
+        return;
+    }
+
+    if (post_count == 1U ||
+        (post_count % RECORD_PRINT_STEP) == 0U)
+    {
+        print_sensor_sample("  ", sample);
+    }
+}
+
+/* =====================================
+ * Record Completion Output
+ * ===================================== */
+
+static void print_record_saved(uint32_t pre_count)
+{
+    EventInfo info;
+    char msg[160];
+
+    if (!event_record_get_info(&info))
+    {
+        return;
+    }
+
+    uint32_t total = event_record_get_count();
+    uint32_t post = total - pre_count;
+
+    uart_print("\n===== RECORD SAVED =====\n");
+
+    (void)snprintf(
+        msg, sizeof(msg),
+        "[RECORD] %lu ms | Flags:%u | %s\n",
         (unsigned long)info.timestamp_ms,
         (unsigned)info.event_flags,
-        event_flags_name(info.event_flags),
-        (unsigned long)event_record_get_count());
-
+        event_flags_name(info.event_flags));
     uart_print(msg);
+
+    (void)snprintf(
+        msg, sizeof(msg),
+        "[RECORD] Pre:%lu | Post:%lu | Total:%lu\n",
+        (unsigned long)pre_count,
+        (unsigned long)post,
+        (unsigned long)total);
+    uart_print(msg);
+
+    uart_print("[RECORD] SAVED\n");
+    uart_print("========================\n");
 }
 
 /* =====================================
@@ -233,33 +316,36 @@ static void print_event_record(void)
 int main(void)
 {
     SensorSample sample;
-
     char msg[160];
 
     StartupState startup_state = STARTUP_CALIBRATING;
 
     uint32_t calibration_start_ms = 0U;
-    uint32_t last_history_print_ms = 0U;
     uint32_t last_sensor_print_ms = 0U;
+    uint32_t last_history_print_ms = 0U;
 
-    /* 최신 Record 완료 로그 중복 방지 */
+    /* 최신 Record의 이전 샘플 수 */
+    uint32_t record_pre_count = 0U;
+
+    /* Record 이후 샘플 수 */
+    uint32_t record_post_count = 0U;
+
+    /* 완료 로그 중복 출력 방지 */
     bool record_saved_logged = false;
 
-    /* Calibration 센서값 합계 */
+    /* 초기 5초 센서값 합계 */
     uint64_t vibration_sum = 0U;
     uint64_t light_sum = 0U;
     uint64_t sound_sum = 0U;
 
-    /* Calibration 샘플 개수 */
     uint32_t baseline_count = 0U;
 
-    /* 최초 5초 평균값 */
     uint16_t vibration_average = 0U;
     uint16_t light_average = 0U;
     uint16_t sound_average = 0U;
 
     /* =====================================
-     * 1. Startup Debug
+     * 1. Startup
      * ===================================== */
 
     uart_print("\n=== Sensor Blackbox Stage 1 ===\n");
@@ -284,8 +370,6 @@ int main(void)
     sensor_manager_init();
     uart_print("[INIT] Sensor Manager OK\n");
 
-    /* Storage Initialization */
-
     ring_buffer_init();
     uart_print("[INIT] Ring Buffer OK\n");
 
@@ -295,8 +379,6 @@ int main(void)
     event_history_init();
     uart_print("[INIT] Event History OK\n");
 
-    /* Audio-out */
-
     alarm_audio_init();
     uart_print("[INIT] Audio driver init returned\n");
 
@@ -304,7 +386,7 @@ int main(void)
     uart_print("[INIT] Alarm OK\n");
 
     /* =====================================
-     * 3. Timer / Interrupt Initialization
+     * 3. Timer / Interrupt
      * ===================================== */
 
     if (!interrupt_init())
@@ -344,13 +426,12 @@ int main(void)
         uint32_t now_ms;
         uint8_t keys;
 
-        /* Audio-in FIFO 처리 */
         sensor_manager_poll();
 
         now_ms = timer_get_ms();
 
         /* ---------------------------------
-         * KEY Event Handling
+         * KEY Handling
          * --------------------------------- */
 
         keys = key_take_events();
@@ -370,14 +451,11 @@ int main(void)
         }
 
         /* ---------------------------------
-         * LED / Alarm Updates
+         * LED / Alarm Update
          * --------------------------------- */
 
         led_hex_update(now_ms);
-
         alarm_update(now_ms);
-
-        /* Audio-out PCM 출력 */
         alarm_audio_update();
 
         /* ---------------------------------
@@ -394,7 +472,6 @@ int main(void)
 
                 uart_print("[READY] LED signal completed\n");
                 uart_print("[INFO] Start monitoring\n");
-                uart_print("[INFO] Storage monitoring enabled\n");
             }
         }
 
@@ -417,13 +494,6 @@ int main(void)
 
             if (startup_state == STARTUP_CALIBRATING)
             {
-                /*
-                 * 최초 5초 동안 센서 측정값 누적
-                 *
-                 * Ring Buffer 저장은 아래
-                 * 공통 영역에서 수행
-                 */
-
                 vibration_sum +=
                     (uint64_t)sample.vibration;
 
@@ -444,19 +514,14 @@ int main(void)
             {
                 uint8_t flags;
                 bool record_started = false;
+                bool history_saved = false;
 
-                /*
-                 * 1. Event Detection
-                 */
                 flags = event_detect(&sample);
 
-                /*
-                 * 2. Risk Level
-                 */
                 (void)risk_level_update(&sample);
 
                 /* -------------------------
-                 * 3. New Event
+                 * 1. New Event
                  * ------------------------- */
 
                 if (flags != EVENT_NONE)
@@ -466,114 +531,96 @@ int main(void)
                     event.timestamp_ms = sample.timestamp_ms;
                     event.event_flags = flags;
 
-                    /*
-                     * Event History
-                     *
-                     * 최근 이벤트의
-                     * 시간 + Flags만 저장
-                     *
-                     * 최대 10건 유지
-                     */
-                    if (event_history_push(
-                            sample.timestamp_ms,
-                            flags))
-                    {
-                        (void)snprintf(
-                            msg, sizeof(msg),
-                            "\n[HISTORY] Saved (%lu/10)\n",
-                            (unsigned long)event_history_count());
+                    /* History 저장 */
+                    history_saved = event_history_push(
+                        sample.timestamp_ms,
+                        flags);
 
-                        uart_print(msg);
-                    }
-
-                    /*
-                     * Event Record
-                     *
-                     * 최신 이벤트 발생 시
-                     * 기존 Record 전체 교체
-                     */
+                    /* 최신 이벤트 기준 Record 교체 */
                     if (event_record_trigger(&event))
                     {
                         record_saved_logged = false;
                         record_started = true;
+
+                        /*
+                         * trigger 직후에는
+                         * 이전 센서 샘플만 존재
+                         */
+                        record_pre_count =
+                            event_record_get_count();
+
+                        record_post_count = 0U;
                     }
 
-                    /*
-                     * LED / HEX
-                     */
+                    /* 기존 이벤트 출력 기능 */
                     led_hex_show(flags);
-
-                    /*
-                     * Audio-out
-                     */
                     alarm_start(event_classify(flags));
 
-                    /*
-                     * Event Flags Output
-                     */
+                    /* -------------------------
+                     * 2. EVENT Output
+                     * ------------------------- */
+
                     (void)snprintf(
                         msg, sizeof(msg),
-                        "[EVENT] %lu ms | Flags:%u | %s\n",
+                        "\n[EVENT] %lu ms | Flags:%u | %s\n",
                         (unsigned long)sample.timestamp_ms,
                         (unsigned)flags,
                         event_flags_name(flags));
 
                     uart_print(msg);
+
+                    /* -------------------------
+                     * 3. BEFORE Output
+                     * ------------------------- */
+
+                    if (record_started)
+                    {
+                        print_record_before(
+                            record_pre_count,
+                            flags);
+
+                        (void)snprintf(
+                            msg, sizeof(msg),
+                            "[RECORD] %s | AFTER\n",
+                            event_flags_name(flags));
+
+                        uart_print(msg);
+                    }
                 }
 
                 /* -------------------------
-                 * 4. Record Sample Update
+                 * 4. Record Update
                  * ------------------------- */
 
                 /*
-                 * 최신 이벤트 이후 센서 데이터 저장
-                 *
-                 * 이벤트 발생 순간의 샘플은
-                 * Post-event 첫 번째 샘플
+                 * 이벤트 이후 샘플 저장
                  */
                 event_record_update(&sample);
 
-                /* -------------------------
-                 * 5. Record Data Output
-                 * ------------------------- */
-
-                if (record_started)
+                /*
+                 * Record가 활성 상태라면
+                 * 이후 샘플 개수 갱신
+                 */
+                if (!event_record_is_saved() &&
+                    event_record_get_count() >
+                        record_pre_count)
                 {
                     uint32_t total =
                         event_record_get_count();
 
-                    uint32_t post = 1U;
-                    uint32_t pre = total - post;
+                    record_post_count =
+                        total - record_pre_count;
 
                     /*
-                     * 이벤트 발생 순간의
-                     * 실제 센서 측정값 출력
+                     * AFTER 대표 샘플 출력
                      */
-                    (void)snprintf(
-                        msg, sizeof(msg),
-                        "[RECORD] Sensor | V:%u L:%u S:%u\n",
-                        (unsigned)sample.vibration,
-                        (unsigned)sample.light,
-                        (unsigned)sample.sound_level);
-
-                    uart_print(msg);
-
-                    /*
-                     * Record에 저장된
-                     * 이전 / 이후 샘플 개수 출력
-                     */
-                    (void)snprintf(
-                        msg, sizeof(msg),
-                        "[RECORD] Pre:%lu | Post:%lu | Total:%lu\n",
-                        (unsigned long)pre,
-                        (unsigned long)post,
-                        (unsigned long)total);
-
-                    uart_print(msg);
+                    print_record_after(
+                        record_post_count,
+                        &sample);
                 }
 
                 /* -------------------------
-                 * 6. Record Save Check
+                 * 5. Record Completion
                  * ------------------------- */
 
                 if (!record_saved_logged &&
@@ -581,19 +628,36 @@ int main(void)
                 {
                     record_saved_logged = true;
 
-                    uart_print(
-                        "\n===== RECORD SAVED =====\n");
+                    /*
+                     * 500번째 AFTER 샘플 출력
+                     */
+                    record_post_count =
+                        event_record_get_count() - record_pre_count;
 
-                    print_event_record();
+                    if (record_post_count ==
+                        POST_EVENT_SAMPLES)
+                    {
+                        print_record_after(
+                            record_post_count,
+                            &sample);
+                    }
 
+                    print_record_saved(
+                        record_pre_count);
+                }
+
+                /* -------------------------
+                 * 6. History Count Output
+                 * ------------------------- */
+
+                if (history_saved)
+                {
                     (void)snprintf(
                         msg, sizeof(msg),
-                        "[RECORD] Post:%lu samples collected\n",
-                        (unsigned long)POST_EVENT_SAMPLES);
+                        "[HISTORY] Saved (%lu/10)\n",
+                        (unsigned long)event_history_count());
 
                     uart_print(msg);
-
-                    uart_print("========================\n");
                 }
             }
 
@@ -603,25 +667,23 @@ int main(void)
 
             /*
              * Calibration / Ready / Monitoring
-             * 모든 상태에서 샘플 저장
+             * 모든 상태에서 저장
              *
-             * 반드시 Record 처리 후 실행
+             * 반드시 Record 처리 이후 수행
              */
             ring_buffer_push(&sample);
 
             /* =============================
-             * D. Sensor Debug Output
+             * D. Sensor Console Output
              * ============================= */
 
-            /*
-             * 센서값은 10ms마다 저장하지만
-             * 콘솔에는 약 1초마다 출력
-             */
             if ((uint32_t)(sample.timestamp_ms - last_sensor_print_ms) >= SENSOR_PRINT_INTERVAL_MS)
             {
                 last_sensor_print_ms = sample.timestamp_ms;
 
-                print_sensor_sample(&sample);
+                print_sensor_sample(
+                    "[SENSOR]",
+                    &sample);
             }
         }
 
@@ -634,11 +696,7 @@ int main(void)
             uint32_t elapsed_ms =
                 (uint32_t)(timer_get_ms() - calibration_start_ms);
 
-            /*
-             * 최초 5초 이상 경과하고
-             * Ring Buffer에 500개 이상 확보
-             */
-            if (elapsed_ms >= BASELINE_CALIBRATION_MS &&
+            if (elapsed_ms >= INITIAL_CALIBRATION_MS &&
                 ring_buffer_count() >= PRE_EVENT_SAMPLES)
             {
                 if (baseline_count == 0U)
@@ -652,9 +710,6 @@ int main(void)
                     return 1;
                 }
 
-                /*
-                 * 최초 5초 평균값 계산
-                 */
                 vibration_average =
                     (uint16_t)(vibration_sum / baseline_count);
 
@@ -664,16 +719,12 @@ int main(void)
                 sound_average =
                     (uint16_t)(sound_sum / baseline_count);
 
-                /* -------------------------
-                 * Baseline Debug Output
-                 * ------------------------- */
+                /* Baseline Output */
 
                 (void)snprintf(
                     msg, sizeof(msg),
                     "[CAL] Samples:%lu | "
-                    "Vibration Base:%u | "
-                    "Light Base:%u | "
-                    "Sound Base:%u\n",
+                    "V:%u L:%u S:%u\n",
                     (unsigned long)baseline_count,
                     (unsigned)vibration_average,
                     (unsigned)light_average,
@@ -681,30 +732,26 @@ int main(void)
 
                 uart_print(msg);
 
-                /*
-                 * Event Detector Baseline
-                 */
+                /* Detector Baseline */
+
                 event_detector_set_baseline(
                     vibration_average,
                     light_average,
                     sound_average);
 
-                /*
-                 * Risk Level Baseline
-                 */
+                /* Risk Level Baseline */
+
                 risk_level_set_baseline(
                     vibration_average,
                     light_average,
                     sound_average);
 
-                /*
-                 * Ready LED Signal
-                 */
+                /* Ready LED Signal */
+
                 led_hex_ready_start(timer_get_ms());
 
-                /* 기존 Audio-out 독립 테스트 유지 */
+                /* 기존 Audio-out 테스트 유지 */
                 alarm_start(DISPLAY_LIGHT);
-
                 uart_print("[AUDIO TEST] Alarm started\n");
 
                 startup_state = STARTUP_READY_SIGNAL;
@@ -718,10 +765,6 @@ int main(void)
          * 6. Automatic History Output
          * ================================= */
 
-        /*
-         * 모니터링 시작 후 10초마다
-         * 최근 이벤트 최대 10건 출력
-         */
         if (startup_state == STARTUP_MONITORING)
         {
             uint32_t current_ms = timer_get_ms();
