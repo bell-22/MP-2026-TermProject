@@ -1,6 +1,6 @@
 
-#include "event_classifier.h" // 이벤트 분류 함수 선언 및 공통 이벤트 타입
-#include "system_config.h"    // DISPLAY_NONE/SHOCK/SOUND/LIGHT/MULTIPLE 정의
+#include "../../include/event_classifier.h" // 이벤트 분류 함수 선언 및 공통 이벤트 타입
+#include "../../include/system_config.h"    // DISPLAY_NONE/SHOCK/SOUND/LIGHT/MULTIPLE 정의
 
 /* 이벤트 플래그를 실제 HEX에 표시할 숫자(0~4)로 변환한다. */
 uint8_t event_classify(uint8_t event_flags)

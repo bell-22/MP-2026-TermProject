@@ -1,34 +1,31 @@
 
-#include "risk_level.h"
+#include "../../include/risk_level.h"
 
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
 
-/* 최초 조도 기준값 설정 여부 */
-static bool s_light_ready;
-
-/* 조도 변화 비교 기준값 */
+/* 초기 1초 평균값 */
+static uint16_t s_vibration_base;
 static uint16_t s_light_base;
+static uint16_t s_sound_base;
+
+static bool s_baseline_ready;
 
 /* 이전 샘플 시간 관리 */
 static bool s_have_last_sample;
 static uint32_t s_last_sample_ms;
 
-/* 이상 상태 지속 여부 */
+/* 이상 상태 추적 */
 static bool s_tracking;
-
-/* 이상 상태가 처음 시작된 시간 */
 static uint32_t s_abnormal_start_ms;
-
-/* 연속 이상 측정 횟수 */
 static uint32_t s_abnormal_samples;
 
 /* 현재 위험 단계 */
 static RiskLevel s_current;
 
 
-/* 두 센서값의 절댓값 차이 계산 */
+/* 두 측정값의 절댓값 차이 */
 static uint32_t abs_diff_u16(uint16_t a, uint16_t b)
 {
     if (a >= b) {
@@ -39,11 +36,16 @@ static uint32_t abs_diff_u16(uint16_t a, uint16_t b)
 }
 
 
-/* 위험 단계 판정 모듈 초기화 */
+/*
+ * 위험도 모듈 초기화
+ */
 void risk_level_init(void)
 {
-    s_light_ready = false;
+    s_vibration_base = 0U;
     s_light_base = 0U;
+    s_sound_base = 0U;
+
+    s_baseline_ready = false;
 
     s_have_last_sample = false;
     s_last_sample_ms = 0U;
@@ -56,28 +58,54 @@ void risk_level_init(void)
 }
 
 
-/* 센서 데이터 기반 위험 단계 판정 */
+/*
+ * 초기 평균값 설정
+ */
+void risk_level_set_baseline(
+    uint16_t vibration_base,
+    uint16_t light_base,
+    uint16_t sound_base)
+{
+    /* 이전 위험도 상태 초기화 */
+    risk_level_init();
+
+    s_vibration_base = vibration_base;
+    s_light_base = light_base;
+    s_sound_base = sound_base;
+
+    s_baseline_ready = true;
+}
+
+
+/*
+ * 센서 데이터 기반 위험 단계 판정
+ */
 RiskLevel risk_level_update(
-    const SensorSample *sample
-)
+    const SensorSample *sample)
 {
     bool shock;
     bool sound;
     bool light;
 
     unsigned active_count;
-    uint32_t light_diff;
 
-    /* 잘못된 입력이면 이전 상태 유지 */
+    uint32_t vibration_diff;
+    uint32_t light_diff;
+    uint32_t sound_diff;
+
     if (sample == NULL) {
         return s_current;
     }
 
+    if (!s_baseline_ready) {
+        return RISK_NORMAL;
+    }
+
+
     /*
-     * 1. 샘플 시간 간격 확인
+     * 1. 샘플 간격 확인
      *
-     * 센서 샘플이 크게 누락되면
-     * 연속 이상 상태 판정을 다시 시작한다.
+     * 기존 기능 유지
      */
     if (s_have_last_sample &&
         (uint32_t)(
@@ -93,49 +121,44 @@ RiskLevel risk_level_update(
 
 
     /*
-     * 2. 최초 조도 기준값 설정
+     * 2. 세 센서의 변화량 계산
      */
-    if (!s_light_ready) {
 
-        s_light_base = sample->light;
-        s_light_ready = true;
-    }
+    vibration_diff = abs_diff_u16(
+        sample->vibration,
+        s_vibration_base
+    );
 
     light_diff = abs_diff_u16(
         sample->light,
         s_light_base
     );
 
+    sound_diff = abs_diff_u16(
+        sample->sound_level,
+        s_sound_base
+    );
+
 
     /*
-     * 3. 센서별 임계값 초과 여부
+     * 3. 센서별 이상 상태 판정
      */
+
     shock =
-        sample->vibration > SHOCK_THRESHOLD;
+        vibration_diff >= SHOCK_CHANGE_THRESHOLD;
 
     sound =
-        sample->sound_level > SOUND_THRESHOLD;
+        sound_diff >= SOUND_CHANGE_THRESHOLD;
 
     light =
-        light_diff > LIGHT_CHANGE_THRESHOLD;
+        light_diff >= LIGHT_CHANGE_THRESHOLD;
 
 
     /* 동시에 이상인 센서 개수 */
     active_count =
-        (unsigned)shock
-        + (unsigned)sound
-        + (unsigned)light;
-
-
-    /*
-     * 조도 변화가 작으면 비교 기준값 갱신
-     *
-     * 큰 변화가 지속되는 동안에는
-     * 기존 기준값을 유지한다.
-     */
-    if (!light) {
-        s_light_base = sample->light;
-    }
+        (unsigned)shock +
+        (unsigned)sound +
+        (unsigned)light;
 
 
     /*
@@ -158,22 +181,18 @@ RiskLevel risk_level_update(
     if (!s_tracking) {
 
         s_tracking = true;
-
-        s_abnormal_start_ms =
-            sample->timestamp_ms;
-
+        s_abnormal_start_ms = sample->timestamp_ms;
         s_abnormal_samples = 0U;
     }
 
 
     /*
-     * 6. 연속 이상 측정 조건 확인
+     * 6. 연속 이상 측정 확인
      */
     if (s_abnormal_samples < EVENT_CONFIRM_SAMPLES) {
         s_abnormal_samples++;
     }
 
-    /* 아직 연속 측정 조건 미충족 */
     if (s_abnormal_samples < EVENT_CONFIRM_SAMPLES) {
 
         s_current = RISK_NORMAL;
@@ -185,53 +204,48 @@ RiskLevel risk_level_update(
     /*
      * 7. DANGER 판정
      *
-     * 아래 중 하나라도 만족하면 위험:
-     *
-     * - 두 종류 이상 센서 동시 이상
-     * - 진동값이 임계값의 2배 이상
-     * - 소음값이 임계값의 2배 이상
-     * - 조도 변화량이 임계값의 2배 이상
-     * - 이상 상태가 1000ms 이상 지속
+     * - 두 센서 이상 동시 이상
+     * - 진동 변화량이 기준의 2배 이상
+     * - 소음 변화량이 기준의 2배 이상
+     * - 조도 변화량이 기준의 2배 이상
+     * - 이상 상태 1000ms 이상 지속
      */
     if (
         active_count >= 2U ||
 
         (shock &&
-         (uint32_t)sample->vibration >=
-             RISK_SEVERE_MULTIPLIER
-             * SHOCK_THRESHOLD) ||
+        vibration_diff >=
+            RISK_SEVERE_MULTIPLIER *
+            SHOCK_CHANGE_THRESHOLD) ||
 
         (sound &&
-         (uint32_t)sample->sound_level >=
-             RISK_SEVERE_MULTIPLIER
-             * SOUND_THRESHOLD) ||
+        sound_diff >=
+            RISK_SEVERE_MULTIPLIER *
+            SOUND_CHANGE_THRESHOLD) ||
 
         (light &&
-         light_diff >=
-             RISK_SEVERE_MULTIPLIER
-             * LIGHT_CHANGE_THRESHOLD) ||
+        light_diff >=
+            RISK_SEVERE_MULTIPLIER *
+            LIGHT_CHANGE_THRESHOLD) ||
 
         (uint32_t)(
-            sample->timestamp_ms
-            - s_abnormal_start_ms
+            sample->timestamp_ms -
+            s_abnormal_start_ms
         ) >= RISK_DANGER_HOLD_MS
     ) {
 
         s_current = RISK_DANGER;
     }
-
-    /*
-     * 8. CAUTION 판정
-     *
-     * 이상 상태가 확인되었지만
-     * 위험 조건까지는 만족하지 않은 경우
-     */
     else {
 
+        /*
+         * 8. CAUTION 판정
+         *
+         * 이상 상태가 확인되었지만
+         * DANGER 조건에는 해당하지 않음
+         */
         s_current = RISK_CAUTION;
     }
 
-
-    /* 최종 위험 단계 반환 */
     return s_current;
 }

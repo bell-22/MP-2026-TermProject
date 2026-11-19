@@ -32,20 +32,43 @@
 // 저장 가능한 이벤트 기록 개수
 #define MAX_EVENT_RECORDS 1U
 
+
+
 /* 3. Event Detection */
 
-// 아래 임계값은 테스트용 초기값.
-// 실제 센서 측정 결과에 따라 조정할 것.
+/*
+ * 초기 기준값 측정 시간
+ *
+ * 프로그램 시작 후 1초 동안
+ * 진동 / 조도 / 소음 평균값 계산
+ */
+#define BASELINE_CALIBRATION_MS 1000U
 
-#define SHOCK_THRESHOLD 2000U
-#define SOUND_THRESHOLD 1000U
-#define LIGHT_CHANGE_THRESHOLD 500U
+/*
+ * 초기 평균값 대비 변화량 임계값
+ *
+ * 실제 보드 실험을 통해 추후 조정
+ */
+#define SHOCK_CHANGE_THRESHOLD 400U
+#define LIGHT_CHANGE_THRESHOLD 50U
+#define SOUND_CHANGE_THRESHOLD 900U
 
-// 이벤트 재감지 대기시간
+/*
+ * 소음 이벤트 중복 감지 방지
+ *
+ * 초기 소음 평균값 대비 변화량이
+ * 400 미만인 상태가 300ms 유지되면
+ * 다음 소음 이벤트 감지 허용
+ */
+#define SOUND_RESET_CHANGE_THRESHOLD 400U
+#define SOUND_RESET_DURATION_MS 300U
+
+/* 이벤트 재감지 대기시간 */
 #define EVENT_COOLDOWN_MS 1000U
 
-// 연속 측정 조건
+/* 연속 2회 이상 감지 시 이벤트 확정 */
 #define EVENT_CONFIRM_SAMPLES 2U
+
 
 /* 4. KEY & Alarm */
 
@@ -53,6 +76,13 @@
 
 // LED 점멸 간격
 #define LED_BLINK_INTERVAL_MS 250U
+
+/*
+ * 초기 측정 완료 알림
+ * LEDR0~9 전체를 3회 점멸
+ */
+#define READY_LED_BLINK_INTERVAL_MS 150U
+#define READY_LED_BLINK_COUNT 3U
 
 // 경고음 기본 지속시간
 #define ALARM_DURATION_MS 200U
