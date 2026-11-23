@@ -94,6 +94,7 @@ bool event_record_trigger(const EventInfo *event)
     return true;
 }
 
+<<<<<<< Updated upstream
 /* ACTIVE 상태에서 이벤트 플래그 누적 */
 void event_record_add_flags(uint8_t flags)
 {
@@ -112,6 +113,51 @@ void event_record_add_flags(uint8_t flags)
 }
 
 /* 이벤트 이후 센서 데이터 저장 */
+=======
+
+/*
+ * Record의 이벤트 종류만 복합으로 갱신
+ *
+ * - RECORD_ACTIVE 상태에서만 허용
+ * - 최초 이벤트 시각 유지
+ * - 기존 Pre/Post 센서 데이터 보존
+ * - Post 수집을 처음부터 다시 시작하지 않음
+ */
+bool event_record_upgrade(
+    uint32_t timestamp_ms,
+    uint8_t new_flags)
+{
+    uint8_t old_flags;
+
+    /* 기록 중인 기존 이벤트인지 확인 */
+    if (record_status != RECORD_ACTIVE ||
+        event_info.timestamp_ms != timestamp_ms ||
+        !event_flags_valid(new_flags))
+    {
+        return false;
+    }
+
+    old_flags = event_info.event_flags;
+
+    /* 기존 이벤트를 포함하는 확장만 허용 */
+    if (new_flags == old_flags ||
+        (uint8_t)(new_flags & old_flags) != old_flags)
+    {
+        return false;
+    }
+
+    /* 샘플 개수와 저장 상태는 변경하지 않음 */
+    event_info.event_flags = new_flags;
+
+    return true;
+}
+
+
+/*
+ * 최신 이벤트 이후 센서 데이터 저장
+ * 이벤트 발생 직후부터 500개 수집
+ */
+>>>>>>> Stashed changes
 void event_record_update(const SensorSample *sample)
 {
     if (sample == NULL ||

@@ -170,17 +170,24 @@ typedef struct {
 
 ### 3.3 Event Detection
 
-| Constant | Description |
-|---|---|
-| SHOCK_THRESHOLD | 충격 감지 임계값 |
-| SOUND_THRESHOLD | 소음 감지 임계값 |
-| LIGHT_CHANGE_THRESHOLD | 조도 변화량 임계값 |
-| EVENT_COOLDOWN_MS | 이벤트 재감지 대기시간 |
-| EVENT_CONFIRM_SAMPLES | 이벤트 확정에 필요한 연속 샘플 수 |
+| Constant | Value | Description |
+|---|---|---|
+| BASELINE_CALIBRATION_MS | 5000 | 초기 평균값 측정 시간 |
+| SHOCK_CHANGE_THRESHOLD | 400 | 진동 이벤트 감지 및 복합 판정 기준 |
+| SOUND_CHANGE_THRESHOLD | 900 | 소음 이벤트 감지 및 복합 판정 기준 |
+| LIGHT_CHANGE_THRESHOLD | 150 | 조도 이벤트 감지 및 복합 판정 기준 |
+| SOUND_RESET_CHANGE_THRESHOLD | 400 | 소음 래치 해제 변화량 |
+| SOUND_RESET_DURATION_MS | 300 | 소음 래치 해제 확인 시간 |
+| LIGHT_RESET_CHANGE_THRESHOLD | 75 | 조도 래치 해제 변화량 |
+| LIGHT_RESET_DURATION_MS | 300 | 조도 래치 해제 확인 시간 |
+| EVENT_COOLDOWN_MS | 1000 | 동일 센서 재감지 쿨다운 |
+| EVENT_CONFIRM_SAMPLES | 2 | 이벤트 확정에 필요한 연속 샘플 수 |
 
-※ 임계값은 초기 테스트값이며 센서 데이터 확인 후 조정한다.
+- 복합 이벤트는 새 센서 이벤트가 확정된 순간, 다른 센서의 래치 상태와 현재 변화량을 확인하여 판정한다.
 
-※ 충격 감지는 순간적인 피크가 사라지지 않도록 원시 측정값 또는 변화량을 활용한다.
+- 복합 이벤트 포함 기준은 각 센서의 최초 감지 기준과 동일하다.
+
+- 시간 차이만으로 독립적인 이벤트를 결합하지 않는다.
 
 ### 3.4 Input & Alarm
 
@@ -461,6 +468,7 @@ bool event_record_get_sample(uint32_t index, SensorSample *out);
 - 이후 새로운 이벤트 기록을 시작할 수 있다.
 - Ring Buffer 초기화 여부는 시스템 정책에 따라 Main에서 별도로 결정한다.
 
+
 ### Event Recording Policy
 
 | 항목 | 정책 |
@@ -473,6 +481,36 @@ bool event_record_get_sample(uint32_t index, SensorSample *out);
 | SAVED 상태 새 이벤트 | 기존 기록이 있으므로 새 기록 시작 거절 |
 | KEY1 | 기록 초기화 및 MONITORING 복귀 |
 | 초기 5초 이내 이벤트 | 실제 확보된 이전 데이터만 저장 |
+
+### void event_history_init(void);
+```c
+bool event_history_push(
+    uint32_t timestamp_ms,
+    uint8_t flags);
+
+bool event_history_upgrade_latest(
+    uint32_t timestamp_ms,
+    uint8_t new_flags);
+
+uint32_t event_history_count(void);
+
+bool event_history_get(
+    uint32_t index,
+    EventHistoryEntry *out);
+
+void event_history_clear(void);
+```
+
+### Event History Policy
+
+- 최근 이벤트 최대 10개 저장
+- 10개 초과 시 가장 오래된 이벤트부터 교체
+- 최초 이벤트 발생 시 새 History 항목 생성
+- 기존 이벤트가 복합 이벤트로 확장되면 최신 항목의 Flags 갱신
+- 복합 확장 시 최초 timestamp와 History 개수 유지
+- 독립적인 새 이벤트는 새로운 History 항목으로 저장
+- 동일한 복합 Flags가 다시 확정되어도 현재 코드에서는
+  별개의 이벤트로 저장될 수 있음
 
 ### Sample Boundary Rule
 
@@ -524,6 +562,14 @@ uint8_t event_detect(const SensorSample *sample);
 - 이벤트 감지에 필요한 내부 상태를 초기화한다.
 - 이전 센서값 및 연속 감지 카운터를 초기화한다.
 - 재감지 대기시간 관리 상태를 초기화한다.
+### void event_detector_init(void);
+
+### void event_detector_set_baseline(
+###    uint16_t vibration_base,
+###    uint16_t light_base,
+###    uint16_t sound_base);
+
+### uint8_t event_detect(const SensorSample *sample);
 
 ### event_detect()
 
@@ -534,16 +580,15 @@ uint8_t event_detect(const SensorSample *sample);
 - 이벤트 비트 플래그 (`EVENT_NONE`~복합 이벤트 조합)
 
 **Rules**
-1. `sample == NULL`이면 `EVENT_NONE`을 반환한다.
-2. 센서값과 임계값·변화량을 비교한다.
-3. 충격·소음·조도 변화 이벤트를 독립적으로 판단한다.
-4. 복합 이벤트는 비트 OR로 표현한다.
-5. 연속 측정 및 재감지 대기시간 조건을 적용한다.
-6. 재감지 대기시간 계산에는 `sample->timestamp_ms`를 사용한다.
-7. ADC와 Audio CODEC에 직접 접근하지 않는다.
-8. 이벤트 기록 모듈을 직접 호출하지 않는다.
-9. 경고음 재입력에 의한 소음 오감지를 방지하기 위해, 경고 출력 상태와 연동하는 방법을 통합 전에 확정한다.
-
+1. 각 센서는 초기 5초 평균값 대비 절댓값 변화량을 사용한다.
+2. 새로운 이벤트는 임계값 이상이 연속 2회 확인되면 확정한다.
+3. 새 이벤트가 없는 샘플에서는 EVENT_NONE을 반환한다.
+4. 새 이벤트가 확정되면 다른 센서의 래치와 현재 변화량을 검사한다.
+5. 다른 센서가 최초 감지 임계값 이상을 만족하면
+   해당 센서의 플래그를 비트 OR로 결합한다.
+6. 최초 감지 임계값과 래치 해제 임계값은 구분한다.
+7. 이벤트 확정 결과는 Event History 및 Event Record로
+   직접 저장하지 않고 Main으로 전달한다.
 ---
 
 ## 10. Event Classifier API — 임연경

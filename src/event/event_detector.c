@@ -208,6 +208,16 @@ void event_detector_set_baseline(
 /*
  * 센서 데이터 기반 이벤트 감지
  */
+
+
+/*
+ * 센서 데이터 기반 이벤트 감지
+ *
+ * 복합 이벤트 판정:
+ * 새로운 센서 이벤트가 확정된 순간,
+ * 다른 센서도 최초 감지 임계값 이상이면
+ * 복합 이벤트로 처리한다.
+ */
 uint8_t event_detect(const SensorSample *sample)
 {
     uint8_t flags = EVENT_NONE;
@@ -225,17 +235,26 @@ uint8_t event_detect(const SensorSample *sample)
         return EVENT_NONE;
     }
 
-    /*
-     * 1. 진동 변화량
-     */
+    /* 1. 초기 평균값 대비 센서 변화량 계산 */
     vibration_diff = abs_diff_u16(
         sample->vibration,
         s_vibration_base
     );
 
+    sound_diff = abs_diff_u16(
+        sample->sound_level,
+        s_sound_base);
+
+    light_diff = abs_diff_u16(
+        sample->light,
+        s_light_base);
+
+    /* 2. 기존 센서별 이벤트 확정 로직 유지 */
+
     if (detect_confirmed(
             &s_shock,
             vibration_diff >= SHOCK_CHANGE_THRESHOLD,
+<<<<<<< Updated upstream
             sample->timestamp_ms)) {
 
         flags |= EVENT_SHOCK;
@@ -271,6 +290,62 @@ uint8_t event_detect(const SensorSample *sample)
             light_diff >= LIGHT_CHANGE_THRESHOLD,
             sample->timestamp_ms)) {
 
+=======
+            sample->timestamp_ms))
+    {
+        flags |= EVENT_SHOCK;
+    }
+
+    if (detect_sound_confirmed(
+            sound_diff,
+            sample->timestamp_ms))
+    {
+        flags |= EVENT_SOUND;
+    }
+
+    if (detect_light_confirmed(
+            light_diff,
+            sample->timestamp_ms))
+    {
+>>>>>>> Stashed changes
+        flags |= EVENT_LIGHT;
+    }
+
+    /*
+     * 3. 새로운 이벤트가 없는 경우
+     * 기존 이벤트를 반복 반환하지 않음
+     */
+    if (flags == EVENT_NONE)
+    {
+        return EVENT_NONE;
+    }
+
+    /*
+     * 4. 복합 이벤트 판정
+     *
+     * 새로운 이벤트가 확정된 순간
+     * 다른 센서의 래치 상태와
+     * 최초 감지 임계값을 함께 확인한다.
+     */
+
+    /* 진동: 변화량 400 이상 */
+    if (s_shock.latched &&
+        vibration_diff >= SHOCK_CHANGE_THRESHOLD)
+    {
+        flags |= EVENT_SHOCK;
+    }
+
+    /* 소음: 변화량 900 이상 */
+    if (s_sound.latched &&
+        sound_diff >= SOUND_CHANGE_THRESHOLD)
+    {
+        flags |= EVENT_SOUND;
+    }
+
+    /* 조도: 변화량 150 이상 */
+    if (s_light.latched &&
+        light_diff >= LIGHT_CHANGE_THRESHOLD)
+    {
         flags |= EVENT_LIGHT;
     }
 

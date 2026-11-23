@@ -29,12 +29,16 @@
     (*(volatile uint32_t *)(uintptr_t)(KEY_BASE + 0x0CU))
 
 /*
- * KEY0 / KEY1 사용
+ * KEY0 ~ KEY3 사용
  *
- * bit0: KEY0
- * bit1: KEY1
+ * bit0: KEY0 - 경고음 중지
+ * bit1: KEY1 - 경고음 및 LED/HEX 초기화
+ * bit2: KEY2 - VGA 실시간 화면
+ * bit3: KEY3 - VGA 과거 이벤트 화면
+ *
+ * 0xF = 0000 1111
  */
-#define KEY_USED_MASK 0x3U
+#define KEY_USED_MASK 0xFU
 
 
 /*
@@ -58,10 +62,10 @@ bool interrupt_init(void)
      *
      * KEY0~KEY3의 기존 edge capture 제거
      */
-    KEY_EDGE_REG = 0xFU;
+    KEY_EDGE_REG = KEY_USED_MASK;
 
     /*
-     * 4. KEY0 / KEY1 인터럽트 허용
+     * 4. KEY0~KEY3 인터럽트 허용
      */
     KEY_INTMASK_REG = KEY_USED_MASK;
 
@@ -116,7 +120,6 @@ void interrupt_handler(void)
      */
     NIOS2_READ_IPENDING(ipending);
 
-
     /*
      * 1. Timer IRQ0 처리
      */
@@ -124,7 +127,6 @@ void interrupt_handler(void)
     {
         timer_irq_handler();
     }
-
 
     /*
      * 2. KEY IRQ1 처리
@@ -145,7 +147,7 @@ void interrupt_handler(void)
         KEY_EDGE_REG = edge;
 
         /*
-         * KEY0 / KEY1만 사용
+         * KEY0~KEY3 모두 확인
          */
         pressed = (uint8_t)(
             edge & KEY_USED_MASK

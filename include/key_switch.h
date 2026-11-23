@@ -1,12 +1,23 @@
+
 #ifndef KEY_SWITCH_H
 #define KEY_SWITCH_H
 
 #include <stdint.h>
 
 /* KEY 입력 이벤트 */
-#define KEY_EVENT_NONE  0U
-#define KEY_EVENT_STOP  (1U << 0)  /* KEY0: 경고 해제 */
-#define KEY_EVENT_CLEAR (1U << 1)  /* KEY1: 기록 초기화 */
+#define KEY_EVENT_NONE         0U
+
+/* KEY0: 경고음 중지 */
+#define KEY_EVENT_STOP         (1U << 0)
+
+/* KEY1: 경고음 및 LED/HEX 초기화 */
+#define KEY_EVENT_CLEAR        (1U << 1)
+
+/* KEY2: VGA 실시간 모니터링 */
+#define KEY_EVENT_VIEW_LIVE    (1U << 2)
+
+/* KEY3: VGA 과거 이벤트 */
+#define KEY_EVENT_VIEW_HISTORY (1U << 3)
 
 /* KEY 입력 처리 상태 초기화 */
 void key_init(void);
@@ -18,8 +29,10 @@ uint8_t key_take_events(void);
  * 공동 KEY ISR에서 호출할 이벤트 전달 함수
  *
  * pressed_mask:
- *   bit0 = KEY0 눌림
- *   bit1 = KEY1 눌림
+ *   bit0 = KEY0
+ *   bit1 = KEY1
+ *   bit2 = KEY2
+ *   bit3 = KEY3
  *
  * timestamp_ms:
  *   Timer 기반 시스템 시간(ms)

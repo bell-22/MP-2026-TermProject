@@ -75,3 +75,45 @@ MP-2026-TermProject/
 - 개발 진행에 따라 구조 변경 가능
 
 **Status:** Initial Design (구현 전 설계안)
+
+### 6. 설계도
+Timer Interrupt (1ms)
+        |
+        v
+Sensor Sampling (10ms)
+        |
+        v
+Event Detection
+        |
+        v
+새로운 이벤트 발생?
+        |
+        +--- NO ---> Record Post 수집
+        |
+        +--- YES
+              |
+              v
+        기존 이벤트의 복합 확장?
+              |
+        +-----+-----+
+        |           |
+       YES          NO
+        |           |
+        v           v
+    History      History
+    Flags 갱신   새 항목 저장
+        |           |
+        v           v
+    Record       Record
+    Flags 갱신   새 기록 시작
+        |           |
+        +-----+-----+
+              |
+              v
+        Record Post 수집
+              |
+              v
+        Ring Buffer 갱신
+              |
+              v
+        LED / HEX / Alarm

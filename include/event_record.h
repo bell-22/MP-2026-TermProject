@@ -110,10 +110,25 @@ void event_record_add_flags(uint8_t flags)
         return;
     }
 
+<<<<<<< Updated upstream
     if (!event_flags_valid(flags))
     {
         return;
     }
+=======
+
+/*
+ * 기록 중인 이벤트의 플래그만 갱신
+ * 기존 센서 데이터 및 최초 시각 유지
+ */
+bool event_record_upgrade(
+    uint32_t timestamp_ms,
+    uint8_t new_flags);
+
+
+/* 최신 이벤트 이후 센서 샘플 저장 */
+void event_record_update(const SensorSample *sample);
+>>>>>>> Stashed changes
 
     event_info.event_flags |= flags;
 }
