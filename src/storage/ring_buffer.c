@@ -3,13 +3,13 @@
 #include "../../include/system_config.h"
 #include <stddef.h>
 
-/* 고정 크기의 센서 데이터 저장 공간 */
+/* 고정 크기 공간 */
 static SensorSample buffer[RING_BUFFER_SIZE];
 
-/* 다음 데이터를 저장할 위치 */
+/* 다음 데이터 저장할 위치 */
 static uint32_t head = 0;
 
-/* 현재 저장된 유효 데이터 개수 */
+/* 현재 저장된 유효 데이터 수 */
 static uint32_t count = 0;
 
 /* Ring Buffer 초기화 */
@@ -27,13 +27,13 @@ void ring_buffer_push(const SensorSample *sample)
         return;
     }
 
-    /* 현재 head 위치에 데이터 저장 */
+    /* 현재 head 위치에 저장 */
     buffer[head] = *sample;
 
-    /* 다음 저장 위치로 이동 */
+    /* 다음 위치로 이동 */
     head = (head + 1U) % RING_BUFFER_SIZE;
 
-    /* 버퍼가 가득 차지 않았을 때만 count 증가 */
+    /* 꽉 차지 않았을 때만 count 증가 */
     if (count < RING_BUFFER_SIZE)
     {
         count++;

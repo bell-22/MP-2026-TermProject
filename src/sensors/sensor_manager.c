@@ -16,9 +16,9 @@ void sensor_manager_init(void)
     sound_init();
 }
 
+/* Audio FIFO 수집 */
 void sensor_manager_poll(void)
 {
-    /* Audio FIFO must be drained more often than 10 ms. */
     sound_update();
 }
 
@@ -30,12 +30,17 @@ bool sensor_manager_sample(uint32_t timestamp_ms,
         return false;
     }
 
+    // 센서 샘플 구조체
     SensorSample sample = {0};
+    // 함수 인자로 받은 시간
     sample.timestamp_ms = timestamp_ms;
 
-    /* Request new ADC conversion. */
+    /* ADC 갱신 */
     adc_update();
 
+    /* &sample.vibration : 샘플 구조체 내부 vibration 멤버 주소
+     * 값 읽고 저장
+     */
     if (!vibration_read(&sample.vibration))
     {
         return false;
@@ -47,8 +52,8 @@ bool sensor_manager_sample(uint32_t timestamp_ms,
     }
 
     /*
-     * No new audio data is not a sensor read failure.
-     * Keep sound_level at zero in that case.
+     * false 반환해도 샘플 생성 계쏙 유지하도록
+     * 새로운 오디오 샘플 없으면 False 반환함 -> 진동/조도값은 보호
      */
     if (!sound_read(&sample.sound_level))
     {
@@ -56,5 +61,5 @@ bool sensor_manager_sample(uint32_t timestamp_ms,
     }
 
     *out = sample; // out = 호출한 쪽에서 전달한 구조체 주소
-    return true;   // 데이터 수집 성공
+    return true;
 }

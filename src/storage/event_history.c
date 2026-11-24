@@ -13,34 +13,27 @@ static uint32_t history_head = 0U;
 /* 현재 이벤트 개수 */
 static uint32_t history_count = 0U;
 
-/* =====================================
- * Event Flag Validation
- * ===================================== */
-
+/* 이벤트 플래그 검사 */
 static bool flags_valid(uint8_t flags)
 {
+    // 유효 마스크 플래그
     const uint8_t mask =
         EVENT_SHOCK |
         EVENT_SOUND |
         EVENT_LIGHT;
 
+    // 0 = 이벤트 없음 -> 저장 X
     return flags != EVENT_NONE &&
            (flags & (uint8_t)~mask) == 0U;
 }
 
-/* =====================================
- * History Initialization
- * ===================================== */
-
+/* History 초기화 */
 void event_history_init(void)
 {
     event_history_clear();
 }
 
-/* =====================================
- * Event Push with Delta
- * ===================================== */
-
+/* 새 이벤트 저장 */
 bool event_history_push_with_delta(
     uint32_t timestamp_ms,
     uint8_t flags,
@@ -66,7 +59,7 @@ bool event_history_push_with_delta(
         (history_head + 1U) %
         EVENT_HISTORY_CAPACITY;
 
-    /* 최대 10개 유지 */
+    /* 최대 10개 */
     if (history_count < EVENT_HISTORY_CAPACITY)
     {
         history_count++;
@@ -75,10 +68,7 @@ bool event_history_push_with_delta(
     return true;
 }
 
-/* =====================================
- * Existing Event Push API
- * ===================================== */
-
+/* 기존 API 유지 */
 bool event_history_push(
     uint32_t timestamp_ms,
     uint8_t flags)
@@ -86,14 +76,10 @@ bool event_history_push(
     return event_history_push_with_delta(
         timestamp_ms,
         flags,
-        0U
-    );
+        0U);
 }
 
-/* =====================================
- * Upgrade Latest Event
- * ===================================== */
-
+/* 복합 이벤트 갱신 */
 bool event_history_upgrade_latest_with_delta(
     uint32_t timestamp_ms,
     uint8_t new_flags,
@@ -121,9 +107,10 @@ bool event_history_upgrade_latest_with_delta(
         return false;
     }
 
+    // 기존 플래그 가져오기
     old_flags = history[position].event_flags;
 
-    /* 기존 플래그를 모두 포함하는 확장만 허용 */
+    /* 기존 플래그 포함? 새 플래그가 기존 플래그도 포함하는지 검사 */
     if (new_flags == old_flags ||
         (uint8_t)(new_flags & old_flags) !=
             old_flags)
@@ -164,23 +151,16 @@ bool event_history_upgrade_latest(
     return event_history_upgrade_latest_with_delta(
         timestamp_ms,
         new_flags,
-        history[position].delta
-    );
+        history[position].delta);
 }
 
-/* =====================================
- * History Count
- * ===================================== */
-
+/* 저장 개수 조회 */
 uint32_t event_history_count(void)
 {
     return history_count;
 }
 
-/* =====================================
- * History Get (Newest First)
- * ===================================== */
-
+/* 최신 이벤트부터 조회 */
 bool event_history_get(
     uint32_t index,
     EventHistoryEntry *out)
@@ -205,10 +185,7 @@ bool event_history_get(
     return true;
 }
 
-/* =====================================
- * History Clear
- * ===================================== */
-
+/* History 초기화 */
 void event_history_clear(void)
 {
     history_head = 0U;

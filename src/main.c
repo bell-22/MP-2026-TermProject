@@ -120,29 +120,29 @@ static const char *event_flags_name(uint8_t flags)
 {
     switch (flags)
     {
-        case EVENT_SHOCK:
-            return "SHOCK";
+    case EVENT_SHOCK:
+        return "SHOCK";
 
-        case EVENT_SOUND:
-            return "SOUND";
+    case EVENT_SOUND:
+        return "SOUND";
 
-        case EVENT_LIGHT:
-            return "LIGHT";
+    case EVENT_LIGHT:
+        return "LIGHT";
 
-        case (EVENT_SHOCK | EVENT_SOUND):
-            return "SHOCK+SOUND";
+    case (EVENT_SHOCK | EVENT_SOUND):
+        return "SHOCK+SOUND";
 
-        case (EVENT_SHOCK | EVENT_LIGHT):
-            return "SHOCK+LIGHT";
+    case (EVENT_SHOCK | EVENT_LIGHT):
+        return "SHOCK+LIGHT";
 
-        case (EVENT_SOUND | EVENT_LIGHT):
-            return "SOUND+LIGHT";
+    case (EVENT_SOUND | EVENT_LIGHT):
+        return "SOUND+LIGHT";
 
-        case (EVENT_SHOCK | EVENT_SOUND | EVENT_LIGHT):
-            return "ALL";
+    case (EVENT_SHOCK | EVENT_SOUND | EVENT_LIGHT):
+        return "ALL";
 
-        default:
-            return "UNKNOWN";
+    default:
+        return "UNKNOWN";
     }
 }
 
@@ -195,8 +195,7 @@ static uint16_t event_delta(
     {
         delta = abs_delta_u16(
             sample->vibration,
-            base_v
-        );
+            base_v);
 
         if (delta > max_delta)
         {
@@ -209,8 +208,7 @@ static uint16_t event_delta(
     {
         delta = abs_delta_u16(
             sample->sound_level,
-            base_s
-        );
+            base_s);
 
         if (delta > max_delta)
         {
@@ -223,8 +221,7 @@ static uint16_t event_delta(
     {
         delta = abs_delta_u16(
             sample->light,
-            base_l
-        );
+            base_l);
 
         if (delta > max_delta)
         {
@@ -258,8 +255,7 @@ static void print_sensor_sample(
         (unsigned long)sample->timestamp_ms,
         (unsigned)sample->vibration,
         (unsigned)sample->light,
-        (unsigned)sample->sound_level
-    );
+        (unsigned)sample->sound_level);
 
     uart_print(msg);
 }
@@ -281,15 +277,13 @@ static void print_event_history(void)
     uint32_t count = event_history_count();
 
     uart_print(
-        "\n========== EVENT HISTORY ==========\n"
-    );
+        "\n========== EVENT HISTORY ==========\n");
 
     (void)snprintf(
         msg,
         sizeof(msg),
         "Stored Events: %lu / 10\n",
-        (unsigned long)count
-    );
+        (unsigned long)count);
 
     uart_print(msg);
 
@@ -320,16 +314,14 @@ static void print_event_history(void)
                 (unsigned long)entry.timestamp_ms,
                 (unsigned)entry.event_flags,
                 event_flags_name(entry.event_flags),
-                (unsigned)entry.delta
-            );
+                (unsigned)entry.delta);
 
             uart_print(msg);
         }
     }
 
     uart_print(
-        "===================================\n"
-    );
+        "===================================\n");
 }
 
 /* =====================================
@@ -351,8 +343,7 @@ static void print_record_before(
         sizeof(msg),
         "[RECORD] %s | BEFORE (%lu samples)\n",
         event_flags_name(flags),
-        (unsigned long)pre_count
-    );
+        (unsigned long)pre_count);
 
     uart_print(msg);
 
@@ -419,8 +410,7 @@ static void print_record_saved(uint32_t pre_count)
         "\n[RECORD] Pre:%lu | Post:%lu | Total:%lu\n",
         (unsigned long)pre_count,
         (unsigned long)post,
-        (unsigned long)total
-    );
+        (unsigned long)total);
 
     uart_print(msg);
 
@@ -476,8 +466,7 @@ int main(void)
      * ===================================== */
 
     uart_print(
-        "\n=== Sensor Blackbox with VGA ===\n"
-    );
+        "\n=== Sensor Blackbox with VGA ===\n");
 
     uart_print("[BOOT] main entered\n");
 
@@ -526,8 +515,7 @@ int main(void)
     if (!interrupt_init())
     {
         uart_print(
-            "[ERROR] Interrupt init failed\n"
-        );
+            "[ERROR] Interrupt init failed\n");
 
         return 1;
     }
@@ -537,8 +525,7 @@ int main(void)
     if (!timer_init())
     {
         uart_print(
-            "[ERROR] Timer init failed\n"
-        );
+            "[ERROR] Timer init failed\n");
 
         return 1;
     }
@@ -560,12 +547,10 @@ int main(void)
         calibration_start_ms;
 
     uart_print(
-        "[CAL] Baseline calibration started\n"
-    );
+        "[CAL] Baseline calibration started\n");
 
     uart_print(
-        "[CAL] Keep sensors stable for 5 seconds\n"
-    );
+        "[CAL] Keep sensors stable for 5 seconds\n");
 
     /* =====================================
      * 4. Main Loop
@@ -599,8 +584,7 @@ int main(void)
             alarm_stop();
 
             uart_print(
-                "[KEY0] Alarm stopped\n"
-            );
+                "[KEY0] Alarm stopped\n");
         }
 
         /* ---------------------------------
@@ -625,8 +609,7 @@ int main(void)
              */
 
             uart_print(
-                "[KEY1] Alarm and display cleared\n"
-            );
+                "[KEY1] Alarm and display cleared\n");
         }
 
         /* ---------------------------------
@@ -640,8 +623,7 @@ int main(void)
              * 화면 갱신 요청을 전달한다.
              */
             vga_set_screen(
-                VGA_SCREEN_REALTIME
-            );
+                VGA_SCREEN_REALTIME);
 
             if (selected_screen !=
                 UI_SCREEN_REALTIME)
@@ -650,8 +632,7 @@ int main(void)
                     UI_SCREEN_REALTIME;
 
                 uart_print(
-                    "[KEY2] VGA Real-time screen\n"
-                );
+                    "[KEY2] VGA Real-time screen\n");
             }
         }
 
@@ -668,8 +649,7 @@ int main(void)
              * 이때 새로운 이벤트를 저장하지 않는다.
              */
             vga_set_screen(
-                VGA_SCREEN_HISTORY
-            );
+                VGA_SCREEN_HISTORY);
 
             if (selected_screen !=
                 UI_SCREEN_HISTORY)
@@ -678,8 +658,7 @@ int main(void)
                     UI_SCREEN_HISTORY;
 
                 uart_print(
-                    "[KEY3] VGA History screen\n"
-                );
+                    "[KEY3] VGA History screen\n");
             }
         }
 
@@ -709,12 +688,10 @@ int main(void)
                     now_ms;
 
                 uart_print(
-                    "[READY] LED signal completed\n"
-                );
+                    "[READY] LED signal completed\n");
 
                 uart_print(
-                    "[INFO] Start monitoring\n"
-                );
+                    "[INFO] Start monitoring\n");
             }
         }
 
@@ -729,8 +706,7 @@ int main(void)
                     &sample))
             {
                 uart_print(
-                    "[ERROR] Sensor sampling failed\n"
-                );
+                    "[ERROR] Sensor sampling failed\n");
 
                 continue;
             }
@@ -802,8 +778,7 @@ int main(void)
                         flags,
                         vibration_average,
                         light_average,
-                        sound_average
-                    );
+                        sound_average);
 
                     /* ---------------------
                      * 복합 이벤트 확장 확인
@@ -823,9 +798,7 @@ int main(void)
                         previous.event_flags ==
                             latest.event_flags &&
                         flags != previous.event_flags &&
-                        (uint8_t)(
-                            flags & previous.event_flags
-                        ) == previous.event_flags)
+                        (uint8_t)(flags & previous.event_flags) == previous.event_flags)
                     {
                         /*
                          * Record의 이벤트 종류만 갱신.
@@ -845,8 +818,7 @@ int main(void)
                                 event_history_upgrade_latest_with_delta(
                                     previous.timestamp_ms,
                                     flags,
-                                    delta
-                                );
+                                    delta);
                         }
                     }
 
@@ -866,8 +838,7 @@ int main(void)
                             event_history_push_with_delta(
                                 sample.timestamp_ms,
                                 flags,
-                                delta
-                            );
+                                delta);
 
                         /*
                          * 최신 Event Record 생성
@@ -877,8 +848,7 @@ int main(void)
                          */
                         record_started =
                             event_record_trigger(
-                                &event
-                            );
+                                &event);
 
                         if (record_started)
                         {
@@ -906,8 +876,7 @@ int main(void)
                     led_hex_show(flags);
 
                     alarm_start(
-                        event_classify(flags)
-                    );
+                        event_classify(flags));
 
                     /* ---------------------
                      * EVENT 즉시 출력
@@ -920,8 +889,7 @@ int main(void)
                         (unsigned long)sample.timestamp_ms,
                         (unsigned)flags,
                         event_flags_name(flags),
-                        (unsigned)delta
-                    );
+                        (unsigned)delta);
 
                     uart_print(msg);
 
@@ -938,12 +906,10 @@ int main(void)
                          * Record 수집 초기화 없음.
                          */
                         uart_print(
-                            "[HISTORY] Updated latest flags/delta\n"
-                        );
+                            "[HISTORY] Updated latest flags/delta\n");
 
                         uart_print(
-                            "[RECORD] Flags updated (capture continues)\n"
-                        );
+                            "[RECORD] Flags updated (capture continues)\n");
                     }
                     else
                     {
@@ -954,8 +920,7 @@ int main(void)
                                 msg,
                                 sizeof(msg),
                                 "[HISTORY] Saved (%lu/10)\n",
-                                (unsigned long)event_history_count()
-                            );
+                                (unsigned long)event_history_count());
 
                             uart_print(msg);
                         }
@@ -965,15 +930,13 @@ int main(void)
                         {
                             print_record_before(
                                 record_pre_count,
-                                flags
-                            );
+                                flags);
 
                             (void)snprintf(
                                 msg,
                                 sizeof(msg),
                                 "[RECORD] %s | AFTER\n",
-                                event_flags_name(flags)
-                            );
+                                event_flags_name(flags));
 
                             uart_print(msg);
                         }
@@ -1025,8 +988,7 @@ int main(void)
                              */
                             print_record_after(
                                 record_post_count,
-                                &sample
-                            );
+                                &sample);
                         }
                     }
 
@@ -1039,8 +1001,7 @@ int main(void)
                         record_collecting = false;
 
                         print_record_saved(
-                            record_pre_count
-                        );
+                            record_pre_count);
                     }
                 }
             }
@@ -1065,18 +1026,15 @@ int main(void)
              * 약 1초마다 실제 센서값 출력.
              * Record 수집 중에도 유지.
              */
-            if ((uint32_t)(
-                    sample.timestamp_ms -
-                    last_sensor_print_ms
-                ) >= SENSOR_PRINT_INTERVAL_MS)
+            if ((uint32_t)(sample.timestamp_ms -
+                           last_sensor_print_ms) >= SENSOR_PRINT_INTERVAL_MS)
             {
                 last_sensor_print_ms =
                     sample.timestamp_ms;
 
                 print_sensor_sample(
                     "[SENSOR]",
-                    &sample
-                );
+                    &sample);
             }
         }
 
@@ -1088,10 +1046,8 @@ int main(void)
             STARTUP_CALIBRATING)
         {
             uint32_t elapsed_ms =
-                (uint32_t)(
-                    timer_get_ms() -
-                    calibration_start_ms
-                );
+                (uint32_t)(timer_get_ms() -
+                           calibration_start_ms);
 
             if (elapsed_ms >=
                     BASELINE_CALIBRATION_MS &&
@@ -1101,8 +1057,7 @@ int main(void)
                 if (baseline_count == 0U)
                 {
                     uart_print(
-                        "[ERROR] No baseline samples\n"
-                    );
+                        "[ERROR] No baseline samples\n");
 
                     alarm_stop();
                     led_hex_clear();
@@ -1115,19 +1070,13 @@ int main(void)
                  * --------------------- */
 
                 vibration_average =
-                    (uint16_t)(
-                        vibration_sum / baseline_count
-                    );
+                    (uint16_t)(vibration_sum / baseline_count);
 
                 light_average =
-                    (uint16_t)(
-                        light_sum / baseline_count
-                    );
+                    (uint16_t)(light_sum / baseline_count);
 
                 sound_average =
-                    (uint16_t)(
-                        sound_sum / baseline_count
-                    );
+                    (uint16_t)(sound_sum / baseline_count);
 
                 /* ---------------------
                  * Baseline Output
@@ -1140,8 +1089,7 @@ int main(void)
                     (unsigned long)baseline_count,
                     (unsigned)vibration_average,
                     (unsigned)light_average,
-                    (unsigned)sound_average
-                );
+                    (unsigned)sound_average);
 
                 uart_print(msg);
 
@@ -1152,8 +1100,7 @@ int main(void)
                 event_detector_set_baseline(
                     vibration_average,
                     light_average,
-                    sound_average
-                );
+                    sound_average);
 
                 /* ---------------------
                  * Risk Level Baseline
@@ -1162,8 +1109,7 @@ int main(void)
                 risk_level_set_baseline(
                     vibration_average,
                     light_average,
-                    sound_average
-                );
+                    sound_average);
 
                 /* ---------------------
                  * VGA Baseline
@@ -1175,30 +1121,26 @@ int main(void)
                 vga_set_baseline(
                     vibration_average,
                     light_average,
-                    sound_average
-                );
+                    sound_average);
 
                 /* ---------------------
                  * Ready LED Signal
                  * --------------------- */
 
                 led_hex_ready_start(
-                    timer_get_ms()
-                );
+                    timer_get_ms());
 
                 /* 기존 Audio-out 테스트 유지 */
                 alarm_start(DISPLAY_LIGHT);
 
                 uart_print(
-                    "[AUDIO TEST] Alarm started\n"
-                );
+                    "[AUDIO TEST] Alarm started\n");
 
                 startup_state =
                     STARTUP_READY_SIGNAL;
 
                 uart_print(
-                    "[READY] LEDR0~9 blinking 3 times\n"
-                );
+                    "[READY] LEDR0~9 blinking 3 times\n");
             }
         }
 
@@ -1221,10 +1163,8 @@ int main(void)
             uint32_t current_ms =
                 timer_get_ms();
 
-            if ((uint32_t)(
-                    current_ms -
-                    last_history_print_ms
-                ) >= HISTORY_PRINT_INTERVAL_MS)
+            if ((uint32_t)(current_ms -
+                           last_history_print_ms) >= HISTORY_PRINT_INTERVAL_MS)
             {
                 last_history_print_ms =
                     current_ms;
@@ -1255,8 +1195,7 @@ int main(void)
          */
         vga_update(
             timer_get_ms(),
-            current_risk
-        );
+            current_risk);
     }
 
     return 0;
