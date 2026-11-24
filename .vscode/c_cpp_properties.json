@@ -1,0 +1,23 @@
+{
+    "configurations": [
+        {
+            "name": "Nios II",
+            "includePath": [
+                "${workspaceFolder}/**",
+                "${workspaceFolder}/include",
+                "C:/intelFPGA_lite/18.1/nios2eds/components/altera_nios2/HAL/inc",
+                "C:/intelFPGA_lite/18.1/nios2eds/components/altera_nios2/drivers/inc"
+            ],
+            "defines": [
+                "LED_HEX_DE1_SOC_COMPUTER",
+                "SYSTEM_BUS_WIDTH=32",
+                "ALT_SINGLE_THREADED"
+            ],
+            "compilerPath": "C:/intelFPGA_lite/18.1/nios2eds/bin/gnu/h-x86_64-mingw32/bin/nios2-elf-gcc.exe",
+            "intelliSenseMode": "windows-gcc-x64",
+            "cStandard": "c11",
+            "cppStandard": "c++17"
+        }
+    ],
+    "version": 4
+}

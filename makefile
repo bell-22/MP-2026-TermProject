@@ -22,25 +22,23 @@ ARCHCCFLAGS	:= -mno-hw-mul -mno-hw-div -I "C:/intelFPGA_lite/18.1/nios2eds/compo
 ARCHLDFLAGS	:= --defsym nasys_stack_top=0x4000000 --defsym nasys_program_mem=0x200 --defsym nasys_data_mem=0x200 --section-start .exceptions=0x20 --section-start .reset=0x0 --section-start .reset=0x0 --section-start .exceptions=0x20
 ARCHLDSCRIPT	:= --script="C:/intelFPGA_lite/18.1/University_Program/Monitor_Program/build/nios_cpp_build.ld"
 ASFLAGS		:= $(ARCHASFLAGS)
-CCFLAGS		:= -Wall -c -DLED_HEX_DE1_SOC_COMPUTER $(USERCCFLAGS) $(ARCHCCFLAGS)
+CCFLAGS := -Wall -c -DLED_HEX_DE1_SOC_COMPUTER $(USERCCFLAGS) $(ARCHCCFLAGS)
 LDFLAGS		:= $(patsubst %, -Wl$(DEFINE_COMMA)%, $(ARCHLDFLAGS)) $(patsubst %, -Wl$(DEFINE_COMMA)%, $(ARCHLDSCRIPT))
 OCFLAGS		:= -O srec
 
-
 # Files
-HDRS :=
-SRCS := src/display/alarm.c src/display/alarm_audio_driver.c src/display/led_hex.c src/display/vga.c src/event/event_classifier.c src/event/event_detector.c src/event/risk_level.c src/input/key_switch.c src/sensors/adc.c src/sensors/light.c src/sensors/sensor_manager.c src/sensors/sound.c src/sensors/vibration.c src/storage/event_history.c src/storage/event_record.c src/storage/ring_buffer.c src/system/exception_handler.c src/system/interrupt.c src/system/system_state.c src/system/timer.c src/main.c amp/lib/src/niosII_jtag_uart.c
-OBJS := $(patsubst %, %.o, $(SRCS))
-
+HDRS		:=
+SRCS		:= src/main.c src/display/alarm.c src/display/alarm_audio_driver.c src/display/led_hex.c src/display/vga.c src/event/event_classifier.c src/event/event_detector.c src/event/risk_level.c src/input/key_switch.c src/sensors/adc.c src/sensors/light.c src/sensors/sensor_manager.c src/sensors/sound.c src/sensors/vibration.c src/storage/event_history.c src/storage/event_record.c src/storage/ring_buffer.c src/system/exception_handler.c src/system/interrupt.c src/system/system_state.c src/system/timer.c
+OBJS		:= $(patsubst %, %.o, $(SRCS))
 
 # Targets
-COMPILE: alarm.srec
+COMPILE: main.srec
 
-alarm.srec: alarm.elf
+main.srec: main.elf
 	$(RM) $@
 	$(OC) $(OCFLAGS) $< $@
 
-alarm.elf: $(OBJS)
+main.elf: $(OBJS)
 	$(RM) $@
 	$(CC) $(LDFLAGS) $(OBJS) -o $@
 
@@ -53,5 +51,5 @@ alarm.elf: $(OBJS)
 	$(AS) $(ASFLAGS) $< -o $@
 
 CLEAN: 
-	$(RM) alarm.srec alarm.elf $(OBJS)
+	$(RM) main.srec main.elf $(OBJS)
 
