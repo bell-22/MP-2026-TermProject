@@ -1,22 +1,7 @@
 
 /*
  * DE1-SoC Sensor Blackbox
- * Stage 1 Integration Debug Test
  *
-<<<<<<< Updated upstream
- * - Vibration / Light / Sound input
- * - Timer IRQ0: 1ms tick, 10ms sampling
- * - KEY IRQ1: KEY0 / KEY1
- * - Initial baseline calibration: 1 second
- * - Ready signal: LEDR0~9 blink 3 times
- * - Event detection and classification
- * - Risk level evaluation
- * - LED / HEX output
- * - Audio-out alarm enabled
- * - Direct JTAG UART debug output
- *
- * Ring Buffer / Event Record: not integrated yet
-=======
  * Sensor sampling: 10ms
  * Sensor console output: 1 second
  * Initial calibration: 5 seconds
@@ -32,7 +17,6 @@
  * KEY3: VGA event history
  *
  * KEY1 does NOT delete stored data.
->>>>>>> Stashed changes
  */
 
 #include <stdio.h>
@@ -57,7 +41,14 @@
 #include "../include/alarm_audio_driver.h"
 #include "../include/vga.h"
 
-/* JTAG UART MMIO */
+#include "../include/ring_buffer.h"
+#include "../include/event_record.h"
+#include "../include/event_history.h"
+
+/* =====================================
+ * Configuration
+ * ===================================== */
+
 #define JTAG_UART_BASE 0xFF201000U
 
 #define JTAG_UART_DATA \
@@ -66,18 +57,23 @@
 #define JTAG_UART_CONTROL \
     (*(volatile uint32_t *)(uintptr_t)(JTAG_UART_BASE + 0x04U))
 
+#define SENSOR_PRINT_INTERVAL_MS 1000U
+#define HISTORY_PRINT_INTERVAL_MS 10000U
 
-/*
- * 프로그램 시작 상태
- */
-typedef enum {
+/* Record 100개마다 대표 센서값 출력 */
+#define RECORD_PRINT_STEP 100U
+
+/* =====================================
+ * Startup State
+ * ===================================== */
+
+typedef enum
+{
     STARTUP_CALIBRATING = 0,
     STARTUP_READY_SIGNAL,
     STARTUP_MONITORING
 } StartupState;
 
-<<<<<<< Updated upstream
-=======
 /* =====================================
  * VGA Screen Selection
  * ===================================== */
@@ -91,15 +87,13 @@ typedef enum
 /* =====================================
  * JTAG UART Output
  * ===================================== */
->>>>>>> Stashed changes
 
-/*
- * Direct JTAG UART output
- */
 static void uart_print(const char *str)
 {
     if (str == NULL)
+    {
         return;
+    }
 
     while (*str != '\0')
     {
@@ -108,7 +102,9 @@ static void uart_print(const char *str)
         while (((JTAG_UART_CONTROL >> 16) & 0xFFFFU) == 0U)
         {
             if (--timeout == 0U)
+            {
                 return;
+            }
         }
 
         JTAG_UART_DATA = (uint32_t)(uint8_t)*str;
@@ -116,8 +112,6 @@ static void uart_print(const char *str)
     }
 }
 
-<<<<<<< Updated upstream
-=======
 /* =====================================
  * Event Flags Name
  * ===================================== */
@@ -436,19 +430,14 @@ static void print_record_saved(uint32_t pre_count)
 /* =====================================
  * Main
  * ===================================== */
->>>>>>> Stashed changes
 
 int main(void)
 {
     SensorSample sample;
-
-    uint32_t sample_count = 0U;
     char msg[160];
 
-    /*
-     * 초기 평균 측정 상태
-     */
-    StartupState startup_state = STARTUP_CALIBRATING;
+    StartupState startup_state =
+        STARTUP_CALIBRATING;
 
     /* 기본 VGA 화면: 실시간 모니터링 */
     UiScreen selected_screen =
@@ -459,13 +448,9 @@ int main(void)
         RISK_NORMAL;
 
     uint32_t calibration_start_ms = 0U;
+    uint32_t last_sensor_print_ms = 0U;
+    uint32_t last_history_print_ms = 0U;
 
-<<<<<<< Updated upstream
-    /* 진동 / 조도 / 소음 누적 합계 */
-    uint32_t vibration_sum = 0U;
-    uint32_t light_sum = 0U;
-    uint32_t sound_sum = 0U;
-=======
     /* 현재 Event Record 상태 */
     uint32_t record_pre_count = 0U;
     uint32_t record_post_count = 0U;
@@ -479,31 +464,22 @@ int main(void)
     uint64_t vibration_sum = 0U;
     uint64_t light_sum = 0U;
     uint64_t sound_sum = 0U;
->>>>>>> Stashed changes
 
-    /* 정상적으로 측정한 샘플 개수 */
     uint32_t baseline_count = 0U;
 
-    /* 초기 1초 평균값 */
     uint16_t vibration_average = 0U;
     uint16_t light_average = 0U;
     uint16_t sound_average = 0U;
 
-
     /* =====================================
-     * 1. Startup Debug
+     * 1. Startup
      * ===================================== */
 
-<<<<<<< Updated upstream
-    uart_print("\n=== Sensor Blackbox Stage 1 ===\n");
-=======
     uart_print(
         "\n=== Sensor Blackbox with VGA ===\n"
     );
 
->>>>>>> Stashed changes
     uart_print("[BOOT] main entered\n");
-
 
     /* =====================================
      * 2. Module Initialization
@@ -524,9 +500,6 @@ int main(void)
     sensor_manager_init();
     uart_print("[INIT] Sensor Manager OK\n");
 
-<<<<<<< Updated upstream
-    /* Audio-out enabled */
-=======
     ring_buffer_init();
     uart_print("[INIT] Ring Buffer OK\n");
 
@@ -540,13 +513,11 @@ int main(void)
     vga_init();
     uart_print("[INIT] VGA OK\n");
 
->>>>>>> Stashed changes
     alarm_audio_init();
     uart_print("[INIT] Audio driver init returned\n");
 
     alarm_init();
     uart_print("[INIT] Alarm OK\n");
-
 
     /* =====================================
      * 3. Timer / Interrupt Initialization
@@ -554,14 +525,10 @@ int main(void)
 
     if (!interrupt_init())
     {
-<<<<<<< Updated upstream
-        uart_print("[ERROR] Interrupt init failed\n");
-=======
         uart_print(
             "[ERROR] Interrupt init failed\n"
         );
 
->>>>>>> Stashed changes
         return 1;
     }
 
@@ -569,14 +536,10 @@ int main(void)
 
     if (!timer_init())
     {
-<<<<<<< Updated upstream
-        uart_print("[ERROR] Timer init failed\n");
-=======
         uart_print(
             "[ERROR] Timer init failed\n"
         );
 
->>>>>>> Stashed changes
         return 1;
     }
 
@@ -591,14 +554,7 @@ int main(void)
     uart_print("[INFO] KEY2: VGA Real-time\n");
     uart_print("[INFO] KEY3: VGA History\n");
 
-    /* 초기 1초 평균 측정 시작 */
     calibration_start_ms = timer_get_ms();
-<<<<<<< Updated upstream
-
-    uart_print("[CAL] Baseline calibration started\n");
-    uart_print("[CAL] Keep sensors stable for 1 second\n");
-
-=======
 
     last_sensor_print_ms =
         calibration_start_ms;
@@ -610,7 +566,6 @@ int main(void)
     uart_print(
         "[CAL] Keep sensors stable for 5 seconds\n"
     );
->>>>>>> Stashed changes
 
     /* =====================================
      * 4. Main Loop
@@ -629,16 +584,9 @@ int main(void)
 
         now_ms = timer_get_ms();
 
-<<<<<<< Updated upstream
-
-        /* ---------------------------------
-         * KEY Event Handling
-         * --------------------------------- */
-=======
         /* =================================
          * KEY Handling
          * ================================= */
->>>>>>> Stashed changes
 
         keys = key_take_events();
 
@@ -649,14 +597,10 @@ int main(void)
         if ((keys & KEY_EVENT_STOP) != 0U)
         {
             alarm_stop();
-<<<<<<< Updated upstream
-            uart_print("[KEY0] Alarm stopped\n");
-=======
 
             uart_print(
                 "[KEY0] Alarm stopped\n"
             );
->>>>>>> Stashed changes
         }
 
         /* ---------------------------------
@@ -670,9 +614,6 @@ int main(void)
             alarm_stop();
             led_hex_clear();
 
-<<<<<<< Updated upstream
-            uart_print("[KEY1] LED/HEX cleared\n");
-=======
             /*
              * 아래 저장 데이터는 유지한다.
              *
@@ -686,16 +627,10 @@ int main(void)
             uart_print(
                 "[KEY1] Alarm and display cleared\n"
             );
->>>>>>> Stashed changes
         }
 
-
         /* ---------------------------------
-<<<<<<< Updated upstream
-         * LED / Alarm Updates
-=======
          * KEY2: VGA 실시간 모니터링
->>>>>>> Stashed changes
          * --------------------------------- */
 
         if ((keys & KEY_EVENT_VIEW_LIVE) != 0U)
@@ -756,33 +691,20 @@ int main(void)
 
         alarm_update(now_ms);
 
-        /* Audio-out PCM 출력 */
         alarm_audio_update();
 
-<<<<<<< Updated upstream
-
-        /* ---------------------------------
-=======
         /* =================================
->>>>>>> Stashed changes
          * Ready Signal Completion
          * ================================= */
 
-        if (startup_state == STARTUP_READY_SIGNAL)
+        if (startup_state ==
+            STARTUP_READY_SIGNAL)
         {
             if (led_hex_ready_is_complete())
             {
-                startup_state = STARTUP_MONITORING;
+                startup_state =
+                    STARTUP_MONITORING;
 
-<<<<<<< Updated upstream
-                uart_print("[READY] LED signal completed\n");
-                uart_print("[INFO] Start monitoring\n");
-            }
-        }
-
-
-        /* ---------------------------------
-=======
                 last_history_print_ms =
                     now_ms;
 
@@ -797,88 +719,52 @@ int main(void)
         }
 
         /* =================================
->>>>>>> Stashed changes
          * 10ms Sensor Sampling
          * ================================= */
 
         if (timer_take_sample_tick())
         {
             if (!sensor_manager_sample(
-                    timer_get_ms(), &sample))
+                    timer_get_ms(),
+                    &sample))
             {
-<<<<<<< Updated upstream
-                uart_print("[ERROR] Sensor sampling failed\n");
-=======
                 uart_print(
                     "[ERROR] Sensor sampling failed\n"
                 );
 
->>>>>>> Stashed changes
                 continue;
             }
 
-            sample_count++;
-
-
             /* =============================
-             * A. Initial Calibration
+             * A. Calibration
              * ============================= */
 
-            if (startup_state == STARTUP_CALIBRATING)
+            if (startup_state ==
+                STARTUP_CALIBRATING)
             {
-                /*
-                 * 초기 1초 동안
-                 * 세 센서의 측정값 누적
-                 */
                 vibration_sum +=
-                    (uint32_t)sample.vibration;
+                    (uint64_t)sample.vibration;
 
                 light_sum +=
-                    (uint32_t)sample.light;
+                    (uint64_t)sample.light;
 
                 sound_sum +=
-                    (uint32_t)sample.sound_level;
+                    (uint64_t)sample.sound_level;
 
                 baseline_count++;
             }
-
 
             /* =============================
              * B. Event Monitoring
              * ============================= */
 
-            else if (startup_state == STARTUP_MONITORING)
+            else if (startup_state ==
+                     STARTUP_MONITORING)
             {
                 uint8_t flags;
 
-                /*
-                 * 세 센서 모두
-                 * 초기 평균 대비 변화량으로 감지
-                 */
                 flags = event_detect(&sample);
 
-<<<<<<< Updated upstream
-                /*
-                 * 동일한 평균값을 사용한 위험도 판정
-                 */
-                (void)risk_level_update(&sample);
-
-                if (flags != EVENT_NONE)
-                {
-                    led_hex_show(flags);
-
-                    /* Audio-out 경고음 시작 */
-                    alarm_start(event_classify(flags));
-
-                    (void)snprintf(
-                        msg, sizeof(msg),
-                        "[EVENT] Time:%lu ms | Flags:%u\n",
-                        (unsigned long)sample.timestamp_ms,
-                        (unsigned)flags
-                    );
-
-                    uart_print(msg);
-=======
                 /* 위험 단계 계산 후 VGA용으로 보존 */
                 current_risk =
                     risk_level_update(&sample);
@@ -1156,18 +1042,25 @@ int main(void)
                             record_pre_count
                         );
                     }
->>>>>>> Stashed changes
                 }
             }
 
-
             /* =============================
-             * C. Sensor Debug Output
+             * C. Ring Buffer Update
              * ============================= */
 
-<<<<<<< Updated upstream
-            if ((sample_count % 100U) == 0U)
-=======
+            /*
+             * Calibration / Ready / Monitoring
+             * 모든 상태에서 샘플 저장.
+             *
+             * Record 처리 이후 실행.
+             */
+            ring_buffer_push(&sample);
+
+            /* =============================
+             * D. Sensor Output
+             * ============================= */
+
             /*
              * 약 1초마다 실제 센서값 출력.
              * Record 수집 중에도 유지.
@@ -1176,57 +1069,39 @@ int main(void)
                     sample.timestamp_ms -
                     last_sensor_print_ms
                 ) >= SENSOR_PRINT_INTERVAL_MS)
->>>>>>> Stashed changes
             {
-                (void)snprintf(
-                    msg, sizeof(msg),
-                    "Time:%lu ms | Vibration:%u | "
-                    "Light:%u | Sound:%u\n",
-                    (unsigned long)sample.timestamp_ms,
-                    (unsigned)sample.vibration,
-                    (unsigned)sample.light,
-                    (unsigned)sample.sound_level
-                );
+                last_sensor_print_ms =
+                    sample.timestamp_ms;
 
-<<<<<<< Updated upstream
-                uart_print(msg);
-=======
                 print_sensor_sample(
                     "[SENSOR]",
                     &sample
                 );
->>>>>>> Stashed changes
             }
         }
 
-
         /* =================================
-         * 5. Baseline Calibration Completion
+         * 5. Baseline Calibration Complete
          * ================================= */
 
-        if (startup_state == STARTUP_CALIBRATING)
+        if (startup_state ==
+            STARTUP_CALIBRATING)
         {
             uint32_t elapsed_ms =
                 (uint32_t)(
-<<<<<<< Updated upstream
-                    timer_get_ms() - calibration_start_ms
-=======
                     timer_get_ms() -
                     calibration_start_ms
->>>>>>> Stashed changes
                 );
 
-            if (elapsed_ms >= BASELINE_CALIBRATION_MS)
+            if (elapsed_ms >=
+                    BASELINE_CALIBRATION_MS &&
+                ring_buffer_count() >=
+                    PRE_EVENT_SAMPLES)
             {
-                /* 정상 샘플이 없는 경우 */
                 if (baseline_count == 0U)
                 {
                     uart_print(
-<<<<<<< Updated upstream
-                        "[ERROR] No baseline samples collected\n"
-=======
                         "[ERROR] No baseline samples\n"
->>>>>>> Stashed changes
                     );
 
                     alarm_stop();
@@ -1235,10 +1110,10 @@ int main(void)
                     return 1;
                 }
 
+                /* ---------------------
+                 * Baseline Average
+                 * --------------------- */
 
-                /*
-                 * 초기 1초 평균값 계산
-                 */
                 vibration_average =
                     (uint16_t)(
                         vibration_sum / baseline_count
@@ -1254,17 +1129,14 @@ int main(void)
                         sound_sum / baseline_count
                     );
 
-
-                /* -------------------------
-                 * Baseline Debug Output
-                 * ------------------------- */
+                /* ---------------------
+                 * Baseline Output
+                 * --------------------- */
 
                 (void)snprintf(
-                    msg, sizeof(msg),
-                    "[CAL] Samples:%lu | "
-                    "Vibration Base:%u | "
-                    "Light Base:%u | "
-                    "Sound Base:%u\n",
+                    msg,
+                    sizeof(msg),
+                    "[CAL] Samples:%lu | V:%u L:%u S:%u\n",
                     (unsigned long)baseline_count,
                     (unsigned)vibration_average,
                     (unsigned)light_average,
@@ -1273,16 +1145,9 @@ int main(void)
 
                 uart_print(msg);
 
-<<<<<<< Updated upstream
-
-                /* -------------------------
-                 * Event Detector Baseline
-                 * ------------------------- */
-=======
                 /* ---------------------
                  * Event Detector Baseline
                  * --------------------- */
->>>>>>> Stashed changes
 
                 event_detector_set_baseline(
                     vibration_average,
@@ -1290,18 +1155,15 @@ int main(void)
                     sound_average
                 );
 
-
-                /* -------------------------
+                /* ---------------------
                  * Risk Level Baseline
-                 * ------------------------- */
+                 * --------------------- */
 
                 risk_level_set_baseline(
                     vibration_average,
                     light_average,
                     sound_average
                 );
-<<<<<<< Updated upstream
-=======
 
                 /* ---------------------
                  * VGA Baseline
@@ -1315,38 +1177,19 @@ int main(void)
                     light_average,
                     sound_average
                 );
->>>>>>> Stashed changes
 
-
-                /* -------------------------
+                /* ---------------------
                  * Ready LED Signal
-                 * ------------------------- */
+                 * --------------------- */
 
-<<<<<<< Updated upstream
-                /*
-                 * LEDR0~9 전체 3회 점멸
-                 * 총 900ms
-                 */
-                led_hex_ready_start(timer_get_ms());
-
-                /* Audio-out 독립 테스트: 800Hz 경고음 3회 ----- test*/
-=======
                 led_hex_ready_start(
                     timer_get_ms()
                 );
 
                 /* 기존 Audio-out 테스트 유지 */
->>>>>>> Stashed changes
                 alarm_start(DISPLAY_LIGHT);
-                uart_print("[AUDIO TEST] Alarm started\n");
-
-                startup_state = STARTUP_READY_SIGNAL;
 
                 uart_print(
-<<<<<<< Updated upstream
-                    "[READY] LEDR0~9 blinking 3 times\n"
-                );
-=======
                     "[AUDIO TEST] Alarm started\n"
                 );
 
@@ -1387,7 +1230,6 @@ int main(void)
                     current_ms;
 
                 print_event_history();
->>>>>>> Stashed changes
             }
         }
 
