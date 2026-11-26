@@ -1,4 +1,3 @@
-
 /*
  * DE1-SoC Sensor Blackbox
  *
@@ -739,11 +738,69 @@ int main(void)
             {
                 uint8_t flags;
 
-                flags = event_detect(&sample);
+                /* -------------------------
+                 * 경고음에 의한 SOUND 이벤트
+                 * 재감지 방지 (추가)
+                 * ------------------------- */
+
+                /*
+                 * 실제 측정된 센서 데이터를 복사하여
+                 * 이벤트 감지용 샘플을 생성한다.
+                 *
+                 * sample:
+                 * 실제 센서 측정값.
+                 * Ring Buffer / Event Record /
+                 * UART / VGA 출력에 사용한다.
+                 *
+                 * detect_sample:
+                 * 이벤트 감지 및 위험 단계
+                 * 계산에만 사용하는 복사본이다.
+                 */
+                SensorSample detect_sample = sample;
+
+                /*
+                 * 경고음이 활성 상태인 경우
+                 * Audio-out의 경고음이 Audio-in으로
+                 * 다시 입력될 수 있다.
+                 *
+                 * 이때 감지용 소음값을 초기 소음
+                 * 평균값으로 대체하여 소음 변화량이
+                 * 0이 되도록 처리한다.
+                 *
+                 * 경고음에 의한 SOUND 이벤트 및
+                 * 잘못된 복합 이벤트 발생을 방지한다.
+                 *
+                 * 진동 / 조도 측정값은 변경하지 않으므로
+                 * SHOCK / LIGHT 이벤트는 정상 감지한다.
+                 *
+                 * 원본 sample은 변경하지 않으므로
+                 * 실제 소음 측정값은 그대로 저장된다.
+                 */
+                if (alarm_is_active())
+                {
+                    detect_sample.sound_level =
+                        sound_average;
+                }
+
+                /*
+                 * 원본 sample 대신 감지용 복사본을
+                 * 사용하여 이벤트를 판정한다.
+                 *
+                 * 경고음이 활성 상태가 아니면
+                 * detect_sample과 sample은 동일하다.
+                 */
+                flags = event_detect(&detect_sample);
 
                 /* 위험 단계 계산 후 VGA용으로 보존 */
+
+                /*
+                 * 위험 단계 계산에도 감지용 복사본 사용.
+                 *
+                 * 경고음 자체에 의해 위험 단계가
+                 * 잘못 상승하는 현상을 방지한다.
+                 */
                 current_risk =
-                    risk_level_update(&sample);
+                    risk_level_update(&detect_sample);
 
                 /* -------------------------
                  * 1. Event Detection / Save
@@ -780,14 +837,21 @@ int main(void)
                         light_average,
                         sound_average);
 
+
                     /* ---------------------
-                     * 복합 이벤트 확장 확인
-                     *
-                     * 기존 Record 수집 중
-                     * 새로운 이벤트가
-                     * 기존 플래그를 포함하면서
-                     * 새로운 플래그가 추가된 경우
-                     * --------------------- */
+                    * 복합 이벤트 확장 확인
+                    *
+                    * 기존 Record 수집 중
+                    * 새로운 이벤트가
+                    * 기존 플래그를 포함하면서
+                    * 새로운 플래그가 추가된 경우
+                    *
+                    * 최초 이벤트 발생 후 500ms 이내인
+                    * 경우에만 복합 이벤트 확장을 허용한다.
+                    *
+                    * 시간적으로 떨어진 독립 이벤트가
+                    * 기존 이벤트에 합쳐지는 것을 방지한다.
+                    * --------------------- */
 
                     if (record_collecting &&
                         !event_record_is_saved() &&
@@ -798,7 +862,13 @@ int main(void)
                         previous.event_flags ==
                             latest.event_flags &&
                         flags != previous.event_flags &&
-                        (uint8_t)(flags & previous.event_flags) == previous.event_flags)
+                        (uint8_t)(flags & previous.event_flags) ==
+                            previous.event_flags &&
+
+                        /* 복합 이벤트 확장 허용 시간 검사 (추가) */
+                        (uint32_t)(sample.timestamp_ms -
+                                previous.timestamp_ms)
+                            <= EVENT_COMBINE_WINDOW_MS)
                     {
                         /*
                          * Record의 이벤트 종류만 갱신.
@@ -1027,7 +1097,7 @@ int main(void)
              * Record 수집 중에도 유지.
              */
             if ((uint32_t)(sample.timestamp_ms -
-                           last_sensor_print_ms) >= SENSOR_PRINT_INTERVAL_MS)
+                        last_sensor_print_ms) >= SENSOR_PRINT_INTERVAL_MS)
             {
                 last_sensor_print_ms =
                     sample.timestamp_ms;
@@ -1047,7 +1117,7 @@ int main(void)
         {
             uint32_t elapsed_ms =
                 (uint32_t)(timer_get_ms() -
-                           calibration_start_ms);
+                        calibration_start_ms);
 
             if (elapsed_ms >=
                     BASELINE_CALIBRATION_MS &&
@@ -1164,7 +1234,7 @@ int main(void)
                 timer_get_ms();
 
             if ((uint32_t)(current_ms -
-                           last_history_print_ms) >= HISTORY_PRINT_INTERVAL_MS)
+                        last_history_print_ms) >= HISTORY_PRINT_INTERVAL_MS)
             {
                 last_history_print_ms =
                     current_ms;

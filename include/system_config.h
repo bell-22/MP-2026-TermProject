@@ -49,9 +49,9 @@
  *
  * 실제 보드 실험을 통해 추후 조정
  */
-#define SHOCK_CHANGE_THRESHOLD 400U
-#define LIGHT_CHANGE_THRESHOLD 50U
-#define SOUND_CHANGE_THRESHOLD 900U
+#define SHOCK_CHANGE_THRESHOLD 800U
+#define SOUND_CHANGE_THRESHOLD 1800U
+#define LIGHT_CHANGE_THRESHOLD 150U
 
 /*
  * 소음 이벤트 중복 감지 방지
@@ -66,10 +66,21 @@
 /* 이벤트 재감지 대기시간 */
 #define EVENT_COOLDOWN_MS 1000U
 
+/*
+ * 복합 이벤트 확장 허용 시간 (추가)
+ *
+ * 최초 이벤트 발생 후 500ms 이내에서만
+ * 기존 이벤트의 복합 확장을 허용한다.
+ *
+ * 500ms를 초과하면 독립 이벤트로 처리한다.
+ */
+#define EVENT_COMBINE_WINDOW_MS 500U
+
 /* 연속 2회 이상 감지 시 이벤트 확정 */
 #define EVENT_CONFIRM_SAMPLES 2U
 
-
+#define LIGHT_RESET_CHANGE_THRESHOLD 75U
+#define LIGHT_RESET_DURATION_MS      300U
 /* 4. KEY & Alarm */
 
 #define KEY_DEBOUNCE_MS 50U
@@ -115,8 +126,5 @@
 /* ADC channel assignment (temporary) */
 #define VIBRATION_ADC_CHANNEL 0U
 #define LIGHT_ADC_CHANNEL 1U
-
-#define LIGHT_RESET_CHANGE_THRESHOLD 75
-#define LIGHT_RESET_DURATION_MS      300
 
 #endif // SYSTEM_CONFIG_H

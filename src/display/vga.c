@@ -1,4 +1,3 @@
-
 #include "../../include/vga.h"
 #include "../../include/project_types.h"
 #include "../../include/system_config.h"
@@ -26,10 +25,17 @@
  *   VALUE : 현재 센서값
  *   LIMIT : 초기 5초 평균값
  *   DELTA : VALUE - LIMIT (부호 유지)
+ *   화면 오른쪽 상단에 LIVE 표시
  *
  * 화면 2: LAST EVENT
  *   최근 이벤트 최대 10개를 최신순으로 표시
- *   History에 저장된 DELTA 값 사용
+ *   History에 저장된 절댓값 DELTA 사용
+ *   증가 및 감소 방향을 구분하지 않고
+ *   변화량의 크기만 표시한다.
+ *
+ *   화면 오른쪽 상단에 HISTORY 표시
+ *   HISTORY는 저장 완료 상태가 아닌
+ *   현재 화면의 종류를 나타낸다.
  *
  * VGA 화면은 기본적으로 1초마다 갱신한다.
  * 화면 전환 시에는 즉시 다시 그린다.
@@ -172,6 +178,7 @@ static void pixel_write(uint32_t x,
  *   - 전체 배경 초기화
  *   - 화면 구분선 출력
  *   - 기존 위험 단계 글자 제거
+ *   - NO SAMPLE 출력 전 위험 단계 영역 제거
  *   - 색상 글자 그리기
  */
 static void pixels_rect(uint32_t x0,
@@ -258,6 +265,12 @@ static void text_at(uint32_t x,
  *
  * text_field()는 남는 공간을
  * 공백으로 채워 이를 방지한다.
+ *
+ * 주의:
+ *   문자 버퍼에 출력된 내용만 제거한다.
+ *   color_word()로 출력한 색상 글자는
+ *   픽셀 버퍼에 존재하므로 pixels_rect()를
+ *   사용하여 별도로 제거해야 한다.
  */
 static void text_field(uint32_t x,
                        uint32_t y,
@@ -339,10 +352,16 @@ static void chars_clear(void)
  *
  * 사용 문자열:
  *   LIVE
- *   SAVED
+ *   HISTORY
  *   NORMAL
  *   CAUTION
  *   DANGER
+ *
+ * 기존 SAVED 표시를 HISTORY로 변경하면서
+ * HISTORY 출력에 필요한 H, Y 글꼴을 추가한다.
+ *
+ * 기존 글꼴은 다른 문자열 출력 및
+ * 향후 사용을 위해 그대로 유지한다.
  *
  * 각 배열의 첫 번째 값은 ASCII 문자이며,
  * 이후 7개의 값은 각 행의 픽셀 패턴이다.
@@ -353,6 +372,10 @@ static const uint8_t font_letters[][8] = {
     {'D', 0x1E,0x11,0x11,0x11,0x11,0x11,0x1E},
     {'E', 0x1F,0x10,0x10,0x1E,0x10,0x10,0x1F},
     {'G', 0x0F,0x10,0x10,0x17,0x11,0x11,0x0E},
+
+    /* HISTORY 출력을 위한 H 글꼴 추가 */
+    {'H', 0x11,0x11,0x11,0x1F,0x11,0x11,0x11},
+
     {'I', 0x1F,0x04,0x04,0x04,0x04,0x04,0x1F},
     {'L', 0x10,0x10,0x10,0x10,0x10,0x10,0x1F},
     {'M', 0x11,0x1B,0x15,0x15,0x11,0x11,0x11},
@@ -362,7 +385,10 @@ static const uint8_t font_letters[][8] = {
     {'S', 0x0F,0x10,0x10,0x0E,0x01,0x01,0x1E},
     {'T', 0x1F,0x04,0x04,0x04,0x04,0x04,0x04},
     {'U', 0x11,0x11,0x11,0x11,0x11,0x11,0x0E},
-    {'V', 0x11,0x11,0x11,0x11,0x0A,0x0A,0x04}
+    {'V', 0x11,0x11,0x11,0x11,0x0A,0x0A,0x04},
+
+    /* HISTORY 출력을 위한 Y 글꼴 추가 */
+    {'Y', 0x11,0x11,0x0A,0x04,0x04,0x04,0x04}
 };
 
 /*
@@ -377,6 +403,13 @@ static const uint8_t font_letters[][8] = {
  *
  * 각 글자는 가독성을 위해
  * 픽셀을 2배 크기로 확대하여 출력한다.
+ *
+ * 확대된 글자 크기:
+ *   가로 10픽셀
+ *   세로 14픽셀
+ *
+ * 글자 사이의 간격은 2픽셀이므로
+ * 다음 글자는 12픽셀 뒤에 출력한다.
  */
 static void color_word(uint32_t x,
                        uint32_t y,
@@ -471,6 +504,12 @@ static void color_word(uint32_t x,
  *
  * 센서값은 uint16_t이지만
  * 음수 계산이 가능하도록 int32_t로 변환한다.
+ *
+ * 이 함수는 실시간 모니터링 화면에서 사용한다.
+ *
+ * History 화면에서는 이 함수를 사용하지 않고
+ * Event History에 저장된 절댓값 변화량을
+ * 그대로 조회하여 출력한다.
  */
 static int32_t signed_delta_u16(uint16_t value,
                                 uint16_t limit)
@@ -491,9 +530,11 @@ static int32_t signed_delta_u16(uint16_t value,
  *
  * SENSOR MONITOR 화면:
  *   현재 센서값, 기준값, DELTA, 위험 단계
+ *   오른쪽 상단 LIVE 표시
  *
  * LAST EVENT 화면:
  *   최근 이벤트 발생 시각, 종류, DELTA
+ *   오른쪽 상단 HISTORY 표시
  *
  * 이 함수는 전체 화면을 다시 그릴 때 호출된다.
  */
@@ -608,7 +649,7 @@ static void background_for_screen(void)
          * NO.   : 이벤트 순서
          * TIME  : 이벤트 발생 시간
          * TYPE  : 이벤트 종류
-         * DELTA : 이벤트 발생 당시 변화량
+         * DELTA : 이벤트 발생 당시 절댓값 변화량
          */
         text_at(3U, 13U, "NO.");
         text_at(17U, 13U, "TIME");
@@ -628,10 +669,37 @@ static void background_for_screen(void)
             C_LINE
         );
 
-        /* 저장된 이벤트 조회 화면 상태 표시 */
+        /*
+         * 이벤트 History 화면 표시
+         *
+         * [수정] 기존 SAVED를 HISTORY로 변경
+         *
+         * 기존 SAVED는 저장된 이벤트가 없는
+         * 경우에도 표시되어 실제 저장 상태로
+         * 오해할 가능성이 있었다.
+         *
+         * HISTORY는 이벤트 저장 완료 여부가
+         * 아닌 현재 화면의 종류를 의미한다.
+         *
+         * 따라서 저장된 이벤트 개수와 관계없이
+         * History 화면에서는 항상 표시한다.
+         *
+         * 실제 이벤트 저장 개수는 화면 하단의
+         * STORED 항목을 통해 확인할 수 있다.
+         *
+         * 출력 좌표 변경:
+         *   기존 SAVED   : x = 250
+         *   변경 HISTORY : x = 226
+         *
+         * 기존 5글자에서 7글자로 증가했으므로
+         * 글자 간격 12픽셀을 기준으로
+         * 시작 위치를 24픽셀 왼쪽으로 이동한다.
+         *
+         * 기존 녹색과 오른쪽 여백은 유지한다.
+         */
         color_word(
-            250U, 12U,
-            "SAVED", C_GREEN
+            226U, 12U,
+            "HISTORY", C_GREEN
         );
     }
 }
@@ -655,6 +723,12 @@ static void background_for_screen(void)
  *   5. VALUE - LIMIT 계산
  *   6. DELTA 출력
  *   7. 위험 단계에 따라 색상 표시
+ *
+ * 샘플 조회 실패 시:
+ *   1. VALUE / LIMIT / DELTA를 ---로 표시
+ *   2. 이전 위험 단계의 색상 글자 제거
+ *   3. NO SAMPLE 출력
+ *   4. 현재 화면 갱신 종료
  *
  * 주의:
  *   센서 데이터는 10ms마다 수집되지만
@@ -742,11 +816,57 @@ static void live_update(uint32_t now_ms,
             );
         }
 
-        /* 센서 샘플 없음 표시 */
+        /*
+         * [추가] 이전 위험 단계의 색상 글자 제거
+         *
+         * NORMAL / CAUTION / DANGER는
+         * color_word()를 사용하여 픽셀 버퍼에
+         * 직접 출력한 색상 글자이다.
+         *
+         * NO SAMPLE은 문자 버퍼에 출력되므로
+         * text_field()만 호출해서는 기존의
+         * 색상 글자를 제거할 수 없다.
+         *
+         * 기존 코드에서는 샘플 조회 실패 시
+         * NO SAMPLE을 출력하고 즉시 return하여
+         * 함수 아래쪽의 위험 단계 픽셀 초기화
+         * 코드가 실행되지 않았다.
+         *
+         * 따라서 기존 위험 단계 글자가 남아
+         * NO SAMPLE과 겹칠 가능성이 있었다.
+         *
+         * 이를 방지하기 위해 return 이전에
+         * 기존 위험 단계 출력 영역을
+         * 화면 배경색으로 초기화한다.
+         *
+         * 초기화 좌표는 아래 F. RISK Color
+         * Display의 기존 좌표와 동일하다.
+         */
+        pixels_rect(
+            100U, 204U,
+            230U, 225U,
+            C_BG
+        );
+
+        /*
+         * 센서 샘플 없음 표시
+         *
+         * 기존 문자 영역을 공백으로 채우면서
+         * NO SAMPLE을 출력한다.
+         *
+         * 다음 갱신에서 정상적으로 샘플을
+         * 조회하면 기존 위험 단계 출력 과정에서
+         * NO SAMPLE이 제거된다.
+         */
         text_field(
             22U, 53U, 20U, "NO SAMPLE"
         );
 
+        /*
+         * 유효한 샘플이 없으므로
+         * VALUE / LIMIT / DELTA 계산 및
+         * 위험 단계 출력은 수행하지 않는다.
+         */
         return;
     }
 
@@ -867,6 +987,10 @@ static void live_update(uint32_t now_ms,
              *   +30
              *   -420
              *   +0
+             *
+             * 실시간 모니터링 화면에서는
+             * 센서값의 증가 및 감소 방향을
+             * 확인할 수 있도록 부호를 유지한다.
              */
             (void)snprintf(
                 msg,
@@ -918,6 +1042,11 @@ static void live_update(uint32_t now_ms,
      *
      * 위험 단계가 변경될 때
      * 이전 글자가 겹치는 현상을 방지한다.
+     *
+     * 샘플 조회에 실패한 경우에도
+     * 동일한 픽셀 영역을 초기화하도록
+     * B. 최신 센서 샘플 조회 부분에
+     * 별도의 초기화 코드를 추가하였다.
      */
     pixels_rect(
         100U, 204U,
@@ -925,7 +1054,15 @@ static void live_update(uint32_t now_ms,
         C_BG
     );
 
-    /* 기존 문자 영역 초기화 */
+    /*
+     * 기존 문자 영역 초기화
+     *
+     * 이전에 표시된 CALIBRATING 또는
+     * NO SAMPLE 문구를 제거한다.
+     *
+     * 이후 현재 상태에 따라
+     * 새로운 위험 단계 표시를 출력한다.
+     */
     text_field(22U, 53U, 17U, "");
 
     /* 아직 보정 중인 경우 */
@@ -976,7 +1113,7 @@ static void live_update(uint32_t now_ms,
  * EVENT_SOUND -> SOUND
  * EVENT_LIGHT -> LIGHT
  *
- * 여러 센서가 동시에 감지된 복합 이벤트는
+ * 여러 센서가 함께 포함된 복합 이벤트는
  * MULTIPLE로 표시한다.
  *
  * 실제 이벤트 플래그 값은
@@ -1005,11 +1142,17 @@ static const char *event_type_name(uint8_t flags)
  *   3. 이벤트 번호 출력
  *   4. 발생 시각 출력
  *   5. 이벤트 종류 출력
- *   6. 저장된 DELTA 출력
+ *   6. 저장된 절댓값 DELTA 출력
  *   7. 총 저장 개수 출력
  *
  * 이 함수에서는 이벤트를 새로 저장하지 않는다.
  * 저장되어 있는 데이터만 조회한다.
+ *
+ * 화면 오른쪽 상단의 HISTORY는
+ * 현재 화면 종류를 나타내는 고정 표시이다.
+ *
+ * 실제 이벤트 저장 개수는
+ * 화면 하단의 STORED 항목에서 확인한다.
  */
 static void history_update(void)
 {
@@ -1115,18 +1258,43 @@ static void history_update(void)
 
             /*
              * History DELTA는 이벤트 발생 시
-             * 저장된 변화량을 사용한다.
+             * 저장된 절댓값 변화량을 사용한다.
              *
-             * 실시간 화면의 부호 있는 DELTA와
-             * 계산 방식이 다르다.
+             * 실시간 화면과 달리 센서값의
+             * 증가 및 감소 방향을 구분하지 않고
+             * 변화량의 크기만 표시한다.
              *
-             * History에는 기존 설계대로
-             * 절댓값 변화량이 저장되어 있다.
+             * 단일 이벤트:
+             *   해당 센서의 절댓값 변화량
+             *
+             * 복합 이벤트:
+             *   해당 센서들의 절댓값 변화량 중
+             *   가장 큰 값
+             *
+             * 기존에는 절댓값 변화량 앞에
+             * + 부호를 붙여 출력하였다.
+             *
+             * 이 경우 센서값이 초기 평균보다
+             * 감소한 이벤트도 증가한 것으로
+             * 오해할 가능성이 있었다.
+             *
+             * 따라서 + 부호를 제거하고
+             * %u 형식으로 숫자만 출력한다.
+             *
+             * 예:
+             *   실시간 DELTA: -420
+             *   History DELTA: 420
+             *
+             *   실시간 DELTA: +350
+             *   History DELTA: 350
+             *
+             * History의 기존 저장 자료형 및
+             * 변화량 계산 방식은 변경하지 않는다.
              */
             (void)snprintf(
                 msg,
                 sizeof(msg),
-                "+%u",
+                "%u",
                 (unsigned)entry.delta
             );
 
@@ -1166,7 +1334,15 @@ static void history_update(void)
      * 현재 이벤트 개수와 최대 저장 개수 출력
      *
      * 예:
+     *   STORED: 0 / 10
      *   STORED: 7 / 10
+     *
+     * 오른쪽 상단의 HISTORY 문구는
+     * 현재 화면 종류를 나타내므로
+     * 저장 개수와 관계없이 유지된다.
+     *
+     * 실제 History 저장 상태는
+     * STORED 값을 통해 확인할 수 있다.
      */
     (void)snprintf(
         msg,
@@ -1228,6 +1404,10 @@ void vga_init(void)
      *
      * 보정 전이므로 LIMIT / DELTA는
      * 아직 정상 수치로 표시되지 않는다.
+     *
+     * Ring Buffer에 샘플이 없다면
+     * 센서값을 ---로 표시하고
+     * 위험 단계 위치에는 NO SAMPLE을 출력한다.
      */
     live_update(0U, RISK_NORMAL);
 }
